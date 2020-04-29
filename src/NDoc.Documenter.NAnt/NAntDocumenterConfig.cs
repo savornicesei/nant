@@ -33,7 +33,7 @@ namespace NDoc.Documenter.NAnt {
 
         private string _outputDirectory = @"doc/help/tasks";
         private bool _sdkLinksOnWeb;
-        private string _productName = "NAnt";
+        private string _productName = "NAnt2";
         private string _productVersion = "";
         private string _productUrl = "";
         private string _nantBaseUri = "";
@@ -49,7 +49,7 @@ namespace NDoc.Documenter.NAnt {
         /// </summary>
         public NAntDocumenterConfig() : base("NAnt") {
             // set reasonable ndoc defaults so we don't have to do this in the build file
-            CopyrightText = String.Format(CultureInfo.InvariantCulture, "Copyright (C) 2001-{0} Gerry Shaw", DateTime.Now.Year);
+            CopyrightText = String.Format(CultureInfo.InvariantCulture, "Copyright (C) 2001-2012 Gerry Shaw, 2019-{0} Simona Avornicesei", DateTime.Now.Year);
             CopyrightHref = "http://nant.sourceforge.net/";
             ShowMissingParams = false;
             ShowMissingRemarks = false;

@@ -17,6 +17,8 @@
                 <warning number="1572" />
                 <warning number="1573" />
                 <warning number="1574" />
+                <!-- ignore AssemblyInformalVersion warning -->
+                <warning number="1607" />
             </nowarn>
             <sources failonempty="true">
                 <include name="*.cs" />

@@ -22,6 +22,8 @@ bld/
 .sonarqube/
 generatedJUnitFiles/
 #SolutionInfo.cs
+docs/
+_site/
 
 #non-distributable files
 Microsoft.SharePoint.*

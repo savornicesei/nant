@@ -14,6 +14,10 @@
                 <!-- do not consider deprecation warnings as errors on .NET 2.0 -->
                 <exclude number="618" if="${framework::get-target-framework() == 'net-2.0'}" />
             </warnaserror>
+            <nowarn>
+                <!-- ignore AssemblyInformalVersion warning -->
+                <warning number="1607" />
+            </nowarn>
             <sources>
                 <include name="**/*.cs" />
                 <!-- extra tasks that for now only build on Microsoft .NET framework -->

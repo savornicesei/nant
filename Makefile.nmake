@@ -36,7 +36,7 @@ NANT = $(MONO) bootstrap\NAnt.exe -j $(NANT_DEBUG)
 all:  bootstrap build-nant
 
 build-nant: bootstrap
-	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build build -D:project.version=$(version) -D:build.number=$(build) -verbose
+	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build build -D:project.version=$(version) -D:build.number=$(build) -logfile:nant-build.log -verbose
 
 clean:
 	if exist bootstrap rmdir /S /Q bootstrap
@@ -45,13 +45,16 @@ clean:
 	if exist install rmdir /S /Q install
 
 install: bootstrap
-	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build install  -D:project.version=$(version) -D:build.number=$(build) -D:prefix="$(prefix)" -D:destdir="$(DESTDIR)" -D:doc.prefix="$(docdir)" -verbose
+	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build install -D:project.version=$(version) -D:build.number=$(build) -D:prefix="$(prefix)" -D:destdir="$(DESTDIR)" -logfile:nant-build-install.log -verbose
 
 run-test: bootstrap
-	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build test -D:project.version=$(version) -D:build.number=$(build) -verbose
+	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build test -D:project.version=$(version) -D:build.number=$(build) -logfile:nant-build-run-test.log -verbose
 
 run-codequality: bootstrap
-	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build code.quality -D:project.version=$(version) -D:build.number=$(build) -verbose
+	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build code.quality -D:project.version=$(version) -D:build.number=$(build) -logfile:nant-build-run-codequality.log -verbose
+
+documentation: bootstrap bootstrap\NDoc.Documenter.NAnt.dll
+	$(NANT) $(TARGET_FRAMEWORK) -f:NAnt.build documentation -D:project.version=$(version) -D:build.number=$(build) -logfile:nant-build-documentation.log -verbose
 	
 bootstrap: setup bootstrap\NAnt.exe bootstrap\NAnt.Core.dll bootstrap\NAnt.DotNetTasks.dll bootstrap\NAnt.CompressionTasks.dll bootstrap\NAnt.Win32Tasks.dll
 	
@@ -88,4 +91,10 @@ bootstrap\NAnt.Win32Tasks.dll:
 	$(CSC) $(DEBUG) -target:library -warn:0 -define:$(DEFINE) -out:bootstrap\NAnt.Win32Tasks.dll \
 		-r:bootstrap\NAnt.Core.dll -r:bootstrap\NAnt.DotNetTasks.dll -r:System.ServiceProcess.dll \
 		-recurse:src\NAnt.Win32\*.cs \
+		src\SolutionInfo.cs
+
+bootstrap\NDoc.Documenter.NAnt.dll:
+	$(CSC) $(DEBUG) -target:library -warn:0 -define:$(DEFINE) -out:bootstrap\NDoc.Documenter.NAnt.dll \
+		-r:bootstrap\NAnt.Core.dll -r:lib\common\neutral\NDoc.Core.dll \
+		-recurse:src\NDoc.Documenter.NAnt\*.cs \
 		src\SolutionInfo.cs

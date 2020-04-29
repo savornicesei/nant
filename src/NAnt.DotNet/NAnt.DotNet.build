@@ -14,6 +14,8 @@
                 <!-- do not report deprecation warnings -->
                 <warning number="0612" />
                 <warning number="0618" />
+                <!-- ignore AssemblyInformalVersion warning -->
+                <warning number="1607" />
             </nowarn>
             <sources>
                 <include name="**/*.cs" />

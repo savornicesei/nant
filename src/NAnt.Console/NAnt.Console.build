@@ -25,6 +25,8 @@
                 -->
                 <warning number="618" if="${framework::get-family(framework::get-target-framework())== 'mono' and framework::get-version(framework::get-target-framework()) >= version::parse('2.0')}" />
                 <warning number="612" if="${framework::get-family(framework::get-target-framework())== 'mono' and framework::get-version(framework::get-target-framework()) >= version::parse('2.0')}" />
+                <!-- ignore AssemblyInformalVersion warning -->
+                <warning number="1607" />
             </nowarn>
             <sources failonempty="true">
                 <include name="**/*.cs" />
