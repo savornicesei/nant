@@ -942,7 +942,7 @@
     <!-- ********************************** -->
     <!-- *******Documentation************** -->
     <!-- ********************************** -->
-    <target name="documentation" depends="build" description="Generates Nunit2 documentation site in _site folder">
+    <target name="documentation" depends="build" description="Generates NAnt2 documentation site in _site folder">
         <property name="docs.tmp.dir" value="${path::combine(docs.dir, '_tmp')}" />
         <mkdir dir="${docs.tmp.dir}" if="${not directory::exists(docs.tmp.dir)}" />
 
