@@ -21,8 +21,9 @@ bld/
 [Rr]eports/
 .sonarqube/
 generatedJUnitFiles/
-docs/
-_site/
+website/output/
+website/wwwroot/
+config.wyam.*
 SolutionInfo.cs
 
 #non-distributable files

@@ -1,0 +1,625 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <OutputType>Exe</OutputType>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SharpScss" Version="1.4.0" />
+      <PackageReference Include="Wyam.Common" Version="2.2.9" />
+      <PackageReference Include="Wyam.Configuration" Version="2.2.9" />
+      <PackageReference Include="Wyam.Core" Version="2.2.9" />
+      <PackageReference Include="Wyam.Hosting" Version="2.2.9" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="System.CommandLine, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <HintPath>..\..\lib\System.CommandLine\System.CommandLine.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\..\website\config.wyam">
+        <Link>website\config.wyam</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\AdminLTE.less">
+        <Link>website\theme\assets\css\adminlte\AdminLTE.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_404_500_errors.less">
+        <Link>website\theme\assets\css\adminlte\_404_500_errors.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_alerts.less">
+        <Link>website\theme\assets\css\adminlte\_alerts.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_bootstrap-social.less">
+        <Link>website\theme\assets\css\adminlte\_bootstrap-social.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_boxes.less">
+        <Link>website\theme\assets\css\adminlte\_boxes.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_buttons.less">
+        <Link>website\theme\assets\css\adminlte\_buttons.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_callout.less">
+        <Link>website\theme\assets\css\adminlte\_callout.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_carousel.less">
+        <Link>website\theme\assets\css\adminlte\_carousel.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_control-sidebar.less">
+        <Link>website\theme\assets\css\adminlte\_control-sidebar.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_core.less">
+        <Link>website\theme\assets\css\adminlte\_core.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_direct-chat.less">
+        <Link>website\theme\assets\css\adminlte\_direct-chat.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_dropdown.less">
+        <Link>website\theme\assets\css\adminlte\_dropdown.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_forms.less">
+        <Link>website\theme\assets\css\adminlte\_forms.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_fullcalendar.less">
+        <Link>website\theme\assets\css\adminlte\_fullcalendar.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_header.less">
+        <Link>website\theme\assets\css\adminlte\_header.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_info-box.less">
+        <Link>website\theme\assets\css\adminlte\_info-box.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_invoice.less">
+        <Link>website\theme\assets\css\adminlte\_invoice.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_labels.less">
+        <Link>website\theme\assets\css\adminlte\_labels.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_lockscreen.less">
+        <Link>website\theme\assets\css\adminlte\_lockscreen.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_login_and_register.less">
+        <Link>website\theme\assets\css\adminlte\_login_and_register.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_mailbox.less">
+        <Link>website\theme\assets\css\adminlte\_mailbox.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_miscellaneous.less">
+        <Link>website\theme\assets\css\adminlte\_miscellaneous.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_mixins.less">
+        <Link>website\theme\assets\css\adminlte\_mixins.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_modal.less">
+        <Link>website\theme\assets\css\adminlte\_modal.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_navs.less">
+        <Link>website\theme\assets\css\adminlte\_navs.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_print.less">
+        <Link>website\theme\assets\css\adminlte\_print.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_products.less">
+        <Link>website\theme\assets\css\adminlte\_products.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_profile.less">
+        <Link>website\theme\assets\css\adminlte\_profile.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_progress-bars.less">
+        <Link>website\theme\assets\css\adminlte\_progress-bars.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_select2.less">
+        <Link>website\theme\assets\css\adminlte\_select2.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_sidebar-mini.less">
+        <Link>website\theme\assets\css\adminlte\_sidebar-mini.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_sidebar.less">
+        <Link>website\theme\assets\css\adminlte\_sidebar.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_small-box.less">
+        <Link>website\theme\assets\css\adminlte\_small-box.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_social-widgets.less">
+        <Link>website\theme\assets\css\adminlte\_social-widgets.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_table.less">
+        <Link>website\theme\assets\css\adminlte\_table.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_timeline.less">
+        <Link>website\theme\assets\css\adminlte\_timeline.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_users-list.less">
+        <Link>website\theme\assets\css\adminlte\_users-list.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\adminlte\_variables.less">
+        <Link>website\theme\assets\css\adminlte\_variables.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\bootstrap.less">
+        <Link>website\theme\assets\css\bootstrap\bootstrap.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_alerts.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_alerts.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_background-variant.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_background-variant.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_border-radius.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_border-radius.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_buttons.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_buttons.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_center-block.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_center-block.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_clearfix.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_clearfix.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_forms.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_forms.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_gradients.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_gradients.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_grid-framework.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_grid-framework.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_grid.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_grid.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_hide-text.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_hide-text.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_image.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_image.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_labels.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_labels.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_list-group.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_list-group.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_nav-divider.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_nav-divider.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_nav-vertical-align.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_nav-vertical-align.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_opacity.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_opacity.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_pagination.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_pagination.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_panels.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_panels.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_progress-bar.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_progress-bar.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_reset-filter.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_reset-filter.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_reset-text.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_reset-text.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_resize.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_resize.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_responsive-visibility.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_responsive-visibility.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_size.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_size.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_tab-focus.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_tab-focus.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_table-row.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_table-row.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_text-emphasis.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_text-emphasis.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_text-overflow.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_text-overflow.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\mixins\_vendor-prefixes.less">
+        <Link>website\theme\assets\css\bootstrap\mixins\_vendor-prefixes.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_alerts.less">
+        <Link>website\theme\assets\css\bootstrap\_alerts.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_badges.less">
+        <Link>website\theme\assets\css\bootstrap\_badges.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_breadcrumbs.less">
+        <Link>website\theme\assets\css\bootstrap\_breadcrumbs.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_button-groups.less">
+        <Link>website\theme\assets\css\bootstrap\_button-groups.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_buttons.less">
+        <Link>website\theme\assets\css\bootstrap\_buttons.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_carousel.less">
+        <Link>website\theme\assets\css\bootstrap\_carousel.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_close.less">
+        <Link>website\theme\assets\css\bootstrap\_close.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_code.less">
+        <Link>website\theme\assets\css\bootstrap\_code.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_component-animations.less">
+        <Link>website\theme\assets\css\bootstrap\_component-animations.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_dropdowns.less">
+        <Link>website\theme\assets\css\bootstrap\_dropdowns.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_forms.less">
+        <Link>website\theme\assets\css\bootstrap\_forms.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_glyphicons.less">
+        <Link>website\theme\assets\css\bootstrap\_glyphicons.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_grid.less">
+        <Link>website\theme\assets\css\bootstrap\_grid.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_input-groups.less">
+        <Link>website\theme\assets\css\bootstrap\_input-groups.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_jumbotron.less">
+        <Link>website\theme\assets\css\bootstrap\_jumbotron.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_labels.less">
+        <Link>website\theme\assets\css\bootstrap\_labels.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_list-group.less">
+        <Link>website\theme\assets\css\bootstrap\_list-group.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_media.less">
+        <Link>website\theme\assets\css\bootstrap\_media.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_mixins.less">
+        <Link>website\theme\assets\css\bootstrap\_mixins.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_modals.less">
+        <Link>website\theme\assets\css\bootstrap\_modals.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_navbar.less">
+        <Link>website\theme\assets\css\bootstrap\_navbar.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_navs.less">
+        <Link>website\theme\assets\css\bootstrap\_navs.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_normalize.less">
+        <Link>website\theme\assets\css\bootstrap\_normalize.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_pager.less">
+        <Link>website\theme\assets\css\bootstrap\_pager.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_pagination.less">
+        <Link>website\theme\assets\css\bootstrap\_pagination.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_panels.less">
+        <Link>website\theme\assets\css\bootstrap\_panels.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_popovers.less">
+        <Link>website\theme\assets\css\bootstrap\_popovers.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_print.less">
+        <Link>website\theme\assets\css\bootstrap\_print.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_progress-bars.less">
+        <Link>website\theme\assets\css\bootstrap\_progress-bars.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_responsive-embed.less">
+        <Link>website\theme\assets\css\bootstrap\_responsive-embed.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_responsive-utilities.less">
+        <Link>website\theme\assets\css\bootstrap\_responsive-utilities.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_scaffolding.less">
+        <Link>website\theme\assets\css\bootstrap\_scaffolding.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_tables.less">
+        <Link>website\theme\assets\css\bootstrap\_tables.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_theme.less">
+        <Link>website\theme\assets\css\bootstrap\_theme.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_thumbnails.less">
+        <Link>website\theme\assets\css\bootstrap\_thumbnails.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_tooltip.less">
+        <Link>website\theme\assets\css\bootstrap\_tooltip.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_type.less">
+        <Link>website\theme\assets\css\bootstrap\_type.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_utilities.less">
+        <Link>website\theme\assets\css\bootstrap\_utilities.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_variables.less">
+        <Link>website\theme\assets\css\bootstrap\_variables.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\bootstrap\_wells.less">
+        <Link>website\theme\assets\css\bootstrap\_wells.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\font-awesome.min.css">
+        <Link>website\theme\assets\css\font-awesome.min.css</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\highlight.css">
+        <Link>website\theme\assets\css\highlight.css</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\override.less">
+        <Link>website\theme\assets\css\override.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\css\theme\theme.less">
+        <Link>website\theme\assets\css\theme\theme.less</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\fontawesome-webfont.eot">
+        <Link>website\theme\assets\fonts\fontawesome-webfont.eot</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\fontawesome-webfont.svg">
+        <Link>website\theme\assets\fonts\fontawesome-webfont.svg</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\fontawesome-webfont.ttf">
+        <Link>website\theme\assets\fonts\fontawesome-webfont.ttf</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\fontawesome-webfont.woff">
+        <Link>website\theme\assets\fonts\fontawesome-webfont.woff</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\fontawesome-webfont.woff2">
+        <Link>website\theme\assets\fonts\fontawesome-webfont.woff2</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\FontAwesome.otf">
+        <Link>website\theme\assets\fonts\FontAwesome.otf</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\glyphicons-halflings-regular.eot">
+        <Link>website\theme\assets\fonts\glyphicons-halflings-regular.eot</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\glyphicons-halflings-regular.svg">
+        <Link>website\theme\assets\fonts\glyphicons-halflings-regular.svg</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\glyphicons-halflings-regular.ttf">
+        <Link>website\theme\assets\fonts\glyphicons-halflings-regular.ttf</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\glyphicons-halflings-regular.woff">
+        <Link>website\theme\assets\fonts\glyphicons-halflings-regular.woff</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\fonts\glyphicons-halflings-regular.woff2">
+        <Link>website\theme\assets\fonts\glyphicons-halflings-regular.woff2</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\img\favicon.ico">
+        <Link>website\theme\assets\img\favicon.ico</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\img\logo.png">
+        <Link>website\theme\assets\img\logo.png</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\app.js">
+        <Link>website\theme\assets\js\app.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\app.min.js">
+        <Link>website\theme\assets\js\app.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\bootstrap.js">
+        <Link>website\theme\assets\js\bootstrap.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\bootstrap.min.js">
+        <Link>website\theme\assets\js\bootstrap.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\highlight.pack.js">
+        <Link>website\theme\assets\js\highlight.pack.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\html5shiv.min.js">
+        <Link>website\theme\assets\js\html5shiv.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\jquery-2.2.3.min.js">
+        <Link>website\theme\assets\js\jquery-2.2.3.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\jquery.slimscroll.min.js">
+        <Link>website\theme\assets\js\jquery.slimscroll.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\jquery.sticky-kit.min.js">
+        <Link>website\theme\assets\js\jquery.sticky-kit.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\lunr.min.js">
+        <Link>website\theme\assets\js\lunr.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\mermaid.min.js">
+        <Link>website\theme\assets\js\mermaid.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\respond.min.js">
+        <Link>website\theme\assets\js\respond.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\svg-pan-zoom.min.js">
+        <Link>website\theme\assets\js\svg-pan-zoom.min.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\assets\js\turbolinks.js">
+        <Link>website\theme\assets\js\turbolinks.js</Link>
+      </Content>
+      <Content Include="..\..\website\theme\index.cshtml">
+        <Link>website\theme\index.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Kind\_Assembly.cshtml">
+        <Link>website\theme\Shared\Kind\_Assembly.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Kind\_Event.cshtml">
+        <Link>website\theme\Shared\Kind\_Event.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Kind\_Field.cshtml">
+        <Link>website\theme\Shared\Kind\_Field.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Kind\_Method.cshtml">
+        <Link>website\theme\Shared\Kind\_Method.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Kind\_NamedType.cshtml">
+        <Link>website\theme\Shared\Kind\_NamedType.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Kind\_Namespace.cshtml">
+        <Link>website\theme\Shared\Kind\_Namespace.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Kind\_Property.cshtml">
+        <Link>website\theme\Shared\Kind\_Property.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Attributes.cshtml">
+        <Link>website\theme\Shared\Section\_Attributes.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_ConstantValue.cshtml">
+        <Link>website\theme\Shared\Section\_ConstantValue.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Constructors.cshtml">
+        <Link>website\theme\Shared\Section\_Constructors.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_DocsTable.cshtml">
+        <Link>website\theme\Shared\Section\_DocsTable.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Events.cshtml">
+        <Link>website\theme\Shared\Section\_Events.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Examples.cshtml">
+        <Link>website\theme\Shared\Section\_Examples.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_ExtensionMethods.cshtml">
+        <Link>website\theme\Shared\Section\_ExtensionMethods.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Fields.cshtml">
+        <Link>website\theme\Shared\Section\_Fields.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Methods.cshtml">
+        <Link>website\theme\Shared\Section\_Methods.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Operators.cshtml">
+        <Link>website\theme\Shared\Section\_Operators.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Parameters.cshtml">
+        <Link>website\theme\Shared\Section\_Parameters.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Properties.cshtml">
+        <Link>website\theme\Shared\Section\_Properties.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Remarks.cshtml">
+        <Link>website\theme\Shared\Section\_Remarks.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_ReturnValue.cshtml">
+        <Link>website\theme\Shared\Section\_ReturnValue.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_SeeAlso.cshtml">
+        <Link>website\theme\Shared\Section\_SeeAlso.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Summary.cshtml">
+        <Link>website\theme\Shared\Section\_Summary.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Syntax.cshtml">
+        <Link>website\theme\Shared\Section\_Syntax.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_TypeParameters.cshtml">
+        <Link>website\theme\Shared\Section\_TypeParameters.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Section\_Value.cshtml">
+        <Link>website\theme\Shared\Section\_Value.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Assembly.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Assembly.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_ChildPages.cshtml">
+        <Link>website\theme\Shared\Sidebar\_ChildPages.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_ChildPagesMenu.cshtml">
+        <Link>website\theme\Shared\Sidebar\_ChildPagesMenu.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Event.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Event.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Field.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Field.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Member.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Member.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Method.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Method.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Modules.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Modules.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_NamedType.cshtml">
+        <Link>website\theme\Shared\Sidebar\_NamedType.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Namespace.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Namespace.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\Sidebar\_Property.cshtml">
+        <Link>website\theme\Shared\Sidebar\_Property.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\_ApiSearch.cshtml">
+        <Link>website\theme\Shared\_ApiSearch.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\_BlogPostDetails.cshtml">
+        <Link>website\theme\Shared\_BlogPostDetails.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\_ChildPages.cshtml">
+        <Link>website\theme\Shared\_ChildPages.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\Shared\_Infobar.cshtml">
+        <Link>website\theme\Shared\_Infobar.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_ApiAfterContent.cshtml">
+        <Link>website\theme\_ApiAfterContent.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_ApiBeforeContent.cshtml">
+        <Link>website\theme\_ApiBeforeContent.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_ApiIndex.cshtml">
+        <Link>website\theme\_ApiIndex.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_ApiLayout.cshtml">
+        <Link>website\theme\_ApiLayout.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_BlogIndex.cshtml">
+        <Link>website\theme\_BlogIndex.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_BlogLayout.cshtml">
+        <Link>website\theme\_BlogLayout.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_BlogPost.cshtml">
+        <Link>website\theme\_BlogPost.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_Bottom.cshtml">
+        <Link>website\theme\_Bottom.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_Footer.cshtml">
+        <Link>website\theme\_Footer.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_Head.cshtml">
+        <Link>website\theme\_Head.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_Layout.cshtml">
+        <Link>website\theme\_Layout.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_Master.cshtml">
+        <Link>website\theme\_Master.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_Navbar.cshtml">
+        <Link>website\theme\_Navbar.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_SidebarFooter.cshtml">
+        <Link>website\theme\_SidebarFooter.cshtml</Link>
+      </Content>
+      <Content Include="..\..\website\theme\_SidebarHeader.cshtml">
+        <Link>website\theme\_SidebarHeader.cshtml</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="..\..\website\input">
+        <Link>website\input</Link>
+      </Folder>
+    </ItemGroup>
+
+</Project>

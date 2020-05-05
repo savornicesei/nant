@@ -15,7 +15,7 @@
     <property name="tests.dir" value="${path::combine(root.dir, 'tests')}" />
     <property name="tools.dir" value="${path::combine(root.dir, 'tools')}" />
     <property name="etc.dir" value="${path::combine(root.dir, 'etc')}" />
-    <property name="docs.dir" value="${path::combine(root.dir, 'docs')}" />
+    <property name="docs.dir" value="${path::combine(root.dir, '_site')}" />
     <property name="reports.dir" value="${path::combine(root.dir, 'reports')}" />
 
     <if test="${project.release.type == 'nightly'}">

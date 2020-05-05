@@ -1,0 +1,7 @@
+---
+title: NAntContrib v0.92-beta1 Released
+category: Release Notes
+author: 
+---
+
+No Updates since 0.92-alpha1.

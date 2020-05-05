@@ -1,0 +1,28 @@
+// Preprocessor directives
+#n Wyam.Yaml
+#n Wyam.Razor
+#n Wyam.Markdown
+
+#recipe Docs
+
+// Body code
+// Normalize the culture for the examples so they produce the same output regardless of system culture
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture
+    = System.Globalization.CultureInfo.CreateSpecificCulture("en-US");
+
+ContentStreamFactory = new MemoryContentStreamFactory();
+
+Settings[Keys.Host] = "";
+Settings[Keys.LinksUseHttps] = false;
+Settings[Keys.LinkRoot] = "/";
+Settings[DocsKeys.Title] = "NAnt2";
+Settings[DocsKeys.Logo] = "/assets/img/logo.png";
+Settings[DocsKeys.ProjectFiles] = "../../src/**/{!.vscode,!bin,!obj,!packages,!*.Tests, !NDoc.*.NAnt,}/**/*.csproj";
+Settings[DocsKeys.IncludeDateInPostPath] = true;
+Settings[DocsKeys.BlogAtomPath] = "blog/feed/atom/index.xml";
+Settings[DocsKeys.BlogRssPath] = "blog/feed/rss/index.xml";
+Settings[DocsKeys.BlogRdfPath] = null;
+Settings[DocsKeys.CaseInsensitiveAuthors] = "true";
+Settings[DocsKeys.CaseInsensitiveCategories] = "true";
+Settings[DocsKeys.CaseInsensitiveTags] = "true";
+Settings[DocsKeys.ImplicitInheritDoc] = true;
