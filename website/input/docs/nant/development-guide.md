@@ -1,5 +1,5 @@
 Title: NAnt development guide
-Order: 10020
+Order: 20
 ---
 
 ## Introduction

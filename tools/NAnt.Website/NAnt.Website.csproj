@@ -7,10 +7,22 @@
 
     <ItemGroup>
       <PackageReference Include="SharpScss" Version="1.4.0" />
+      <PackageReference Include="Wyam.CodeAnalysis" Version="2.2.9" />
       <PackageReference Include="Wyam.Common" Version="2.2.9" />
       <PackageReference Include="Wyam.Configuration" Version="2.2.9" />
       <PackageReference Include="Wyam.Core" Version="2.2.9" />
-      <PackageReference Include="Wyam.Hosting" Version="2.2.9" />
+      <PackageReference Include="Wyam.Docs" Version="2.2.9" />
+      <PackageReference Include="Wyam.Feeds" Version="2.2.9" />
+      <PackageReference Include="Wyam.Html" Version="2.2.9" />
+      <PackageReference Include="Wyam.Images" Version="2.2.9" />
+      <PackageReference Include="Wyam.Json" Version="2.2.9" />
+      <PackageReference Include="Wyam.Less" Version="2.2.9" />
+      <PackageReference Include="Wyam.Markdown" Version="2.2.9" />
+      <PackageReference Include="Wyam.Minification" Version="2.2.9" />
+      <PackageReference Include="Wyam.Razor" Version="2.2.9" />
+      <PackageReference Include="Wyam.SearchIndex" Version="2.2.9" />
+      <PackageReference Include="Wyam.Web" Version="2.2.9" />
+      <PackageReference Include="Wyam.Yaml" Version="2.2.9" />
     </ItemGroup>
 
     <ItemGroup>
@@ -621,5 +633,4 @@
         <Link>website\input</Link>
       </Folder>
     </ItemGroup>
-
 </Project>

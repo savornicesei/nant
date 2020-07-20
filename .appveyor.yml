@@ -18,6 +18,7 @@ init:
   - git config --global core.autocrlf true
 
 install:
+  - choco install -y wyam
   - choco install -y sonarscanner-msbuild-net46
   - choco install -y opencover
 

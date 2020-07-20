@@ -147,7 +147,6 @@ Documentation is available in HTML format, in the `doc/` directory.
 
 License
 ========
-NAnt is provided under included GPL license.
-NAntContrib is provided under included LGPL license.
-NAnt Copyright (C) 2001-2012 Gerry Shaw
-NAntContrib Copyright (C) 2002 Tomas Restrepo (tomasr@mvps.org)
+NAnt is provided under included GPL license. NAnt Copyright (C) 2001-2012 Gerry Shaw  
+NAntContrib is provided under included LGPL license. NAntContrib Copyright (C) 2002 Tomas Restrepo (tomasr@mvps.org)  
+

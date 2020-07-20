@@ -15,7 +15,7 @@
     <property name="tests.dir" value="${path::combine(root.dir, 'tests')}" />
     <property name="tools.dir" value="${path::combine(root.dir, 'tools')}" />
     <property name="etc.dir" value="${path::combine(root.dir, 'etc')}" />
-    <property name="docs.dir" value="${path::combine(root.dir, '_site')}" />
+    <property name="docs.dir" value="${path::combine(root.dir, 'website')}" />
     <property name="reports.dir" value="${path::combine(root.dir, 'reports')}" />
 
     <if test="${project.release.type == 'nightly'}">
@@ -942,138 +942,11 @@
     <!-- ********************************** -->
     <!-- *******Documentation************** -->
     <!-- ********************************** -->
-    <target name="documentation" depends="build" description="Generates NAnt2 documentation site in _site folder">
-        <property name="docs.tmp.dir" value="${path::combine(docs.dir, '_tmp')}" />
-        <mkdir dir="${docs.tmp.dir}" if="${not directory::exists(docs.tmp.dir)}" />
-
-        <delete>
-            <fileset basedir="${docs.dir}">
-                <include name="**/*" />
-            </fileset>
-        </delete> 
-
-        <property name="release.dir" value="release/${product.version}" if="${project.release.type == 'release'}" />
-        <property name="release.dir" value="${project.release.type}/latest" if="${project.release.type != 'release'}" />
-        <mkdir dir="${path::combine(docs.tmp.dir, release.dir)}" if="${not directory::exists(path::combine(docs.tmp.dir, release.dir))}" />
-
-        <!-- create NAnt2 user documentation -->
-        <ndoc>
-            <assemblies basedir="${build.dir}/bin">
-                <include name="NAnt.Core.dll" />
-                <include name="*Tasks.dll" />
-                <include name="NAnt.NUnit.dll" />
-            </assemblies>
-            <documenters>
-                <documenter name="NAnt">
-                    <property name="OutputDirectory" value="${docs.tmp.dir}/${release.dir}/help" />
-                    <property name="SdkDocVersion" value="${link.sdkdoc.version}" />
-                    <property name="SdkLinksOnWeb" value="${link.sdkdoc.web}" />
-                    <!-- set base uri used for linking to other NAnt docs -->
-                    <property name="NAntBaseUri" value="../" />
-                    <!-- do not filter on namespace -->
-                    <property name="NamespaceFilter" value="" />
-                    <!-- set the name and version of the product for which docs are generated -->
-                    <property name="ProductName" value="NAnt2" />
-                    <property name="ProductVersion" value="${project.version.full}" />
-                    <property name="ProductUrl" value="${project.url}" />
-                    <property name="Preliminary" value="${not(project.release.type == 'release')}" />
-                    <property name="DocumentAttributes" value="True" />
-                    <property name="IncludeAssemblyVersion" value="True" />
-                    <property name="ShowMissingParams" value="True" />
-                    <property name="ShowMissingReturns" value="True" />
-                    <property name="ShowMissingValues" value="True" />
-                </documenter>
-            </documenters>
-        </ndoc>
-
-        <!-- create NAnt2 developer documentation -->
-        <ndoc>
-            <assemblies basedir="${build.dir}/bin">
-                <include name="NAnt.Core.dll" />
-                <include name="NAnt.*Tasks.dll" />
-                <include name="NAnt.NUnit.dll" />
-            </assemblies>
-            <documenters>
-                <documenter name="MSDN">
-                    <property name="OutputDirectory" value="${docs.tmp.dir}/${release.dir}/sdk" />
-                    <property name="OutputTarget" value="HtmlHelpAndWeb" />
-                    <property name="SdkDocVersion" value="${link.sdkdoc.version}" />
-                    <property name="SdkLinksOnWeb" value="${link.sdkdoc.web}" />
-                    <property name="HtmlHelpName" value="NAnt-SDK" />
-                    <property name="IncludeFavorites" value="False" />
-                    <property name="Title" value="NAnt2 SDK Documentation - v${project.version.full}" />
-                    <property name="SplitTOCs" value="False" />
-                    <property name="DefaulTOC" value="" />
-                    <property name="ShowVisualBasic" value="True" />
-                    <property name="Preliminary" value="${not(project.release.type == 'release')}" />
-                    <property name="ShowMissingSummaries" value="${build.debug}" />
-                    <property name="ShowMissingRemarks" value="${build.debug}" />
-                    <property name="ShowMissingParams" value="${build.debug}" />
-                    <property name="ShowMissingReturns" value="${build.debug}" />
-                    <property name="ShowMissingValues" value="${build.debug}" />
-                    <property name="DocumentAttributes" value="True" />
-                    <property name="ShowTypeIdInAttributes" value="False" />
-                    <property name="DocumentInternals" value="False" />
-                    <property name="DocumentPrivates" value="False" />
-                    <property name="DocumentProtected" value="True" />
-                    <property name="DocumentEmptyNamespaces" value="False" />
-                    <property name="IncludeAssemblyVersion" value="False" />
-                    <property name="CopyrightText" value="Copyright (C) 2001-2012 Gerry Shaw, 2019-${datetime::get-year(datetime::now())} Simona Avornicesei" />
-                    <property name="CopyrightHref" value="${project.url}" />
-                    <property name="EditorBrowsableFilter" value="Off" />
-                </documenter>
-            </documenters>
-        </ndoc>
-         <!-- delete all intermediate build output -->
-        <delete>
-            <fileset basedir="${docs.tmp.dir}/${release.dir}/sdk">
-                <include name="NAnt-SDK.hhc" />
-                <include name="NAnt-SDK.hhk" />
-                <include name="NAnt-SDK.hhp" />
-                <include name="NAnt-SDK.log" />
-                <!-- temporary directory -->
-                <include name="ndoc_msdn_temp" />
-            </fileset>
-        </delete>
-
-        <!-- copy static site pages -->
-        <copy todir="${docs.tmp.dir}">
-            <fileset basedir="${path::combine(root.dir, 'web')}">
-                <!-- website -->
-                <include name="**/**" />
-            </fileset>
-        </copy>
-        <copy todir="${path::combine(docs.tmp.dir, release.dir)}">
-            <fileset basedir="${path::combine(root.dir, 'doc')}">
-                <!-- docs -->
-                <include name="**/**" />
-            </fileset>
-        </copy>
-
-        <copy todir="${docs.dir}">
-            <fileset basedir="${docs.tmp.dir}">
-                <include name="**/**" />
-            </fileset>
-            <filterchain>
-                <replacetokens>
-                    <token key="PRODUCT_VERSION" value="${project.version.full}" />
-                </replacetokens>
-                <!-- when NOT building a release package, add prelimary notice -->
-                <replacestring
-                    from="&lt;!-- @PRELIMINARY_NOTICE@ -->"
-                    to="&lt;p class=&quot;topicstatus&quot;>[This is preliminary documentation and subject to change.]&lt;/p>"
-                    unless="${project.release.type == 'release'}" 
-                />
-                <!-- when building a release package, remove the placeholder -->
-                <replacestring
-                    from="&lt;!-- @PRELIMINARY_NOTICE@ -->"
-                    to=""
-                    if="${project.release.type == 'release'}" 
-                />
-            </filterchain>
-        </copy>
+    <target name="documentation" depends="build" description="Generates NAnt2 documentation site in website/output folder">
+        
 
         <!-- create NAnt2 xsd schema -->
+        <!--
         <mkdir dir="${docs.dir}/${release.dir}/schema" />
         <if test="${project.release.type == 'nightly'}">
             <property name="schema.ns" value="${project.url}/${project.release.type + '/' + build.date + '-' + project.version + '/nant.xsd'}" />
@@ -1082,7 +955,7 @@
             <property name="schema.ns" value="${project.url}/${release.dir}/nant.xsd" />
         </if>
         <nantschema output="${docs.dir}/${release.dir}/schema/${project.name}.xsd" target-ns="${schema.ns}" />
-
+        -->
     </target>
 
     <!-- ********************************** -->

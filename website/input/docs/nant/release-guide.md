@@ -1,5 +1,5 @@
 Title: NAnt release guide
-Order: 10020
+Order: 20
 ---
 
 ## Introduction

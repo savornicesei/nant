@@ -1,5 +1,5 @@
 Title: NAnt/NAntContrib contributors
-Order: 10050
+Order: 50
 ---
 
 # NAnt (2001 - 2018)
@@ -55,3 +55,5 @@ Order: 10050
 * Richard Birkby
 * Nikhil Gupta 
 * Bryce
+
+...And more, please see list archives for additional contributors

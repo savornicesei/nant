@@ -1,5 +1,5 @@
 Title: NAnt release plan
-Order: 10030
+Order: 30
 ---
 
 # NAnt release plan
