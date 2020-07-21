@@ -2,30 +2,7 @@
 Title: Release Notes
 ---
 
-# 0.92 - June 9, 2012 {v0.92}
-
-## NAnt
-
----
-
-**No Updates since 0.92-rc1**
-
-## NAntContrib
-
----
-
-### **Bug Fixes**
-
-**Tasks**
-
-* **NUnit2Report** 
-
-  * Fixed graphs so they appear correctly on modern browsers. ([Pull Request #21](https://github.com/nant/nantcontrib/pull/21))  
-    Removed # prefix from anchor names. ([Pull Request #20](https://github.com/nant/nantcontrib/pull/20))
-  
-  
-  
-# 0.92-rc1 - May 23, 2012 {v0.91-rc1}
+# 0.92-rc1 - May 23, 2012 {v0.92-rc1}
 
 ## NAnt
 

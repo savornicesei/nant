@@ -28,6 +28,24 @@ Settings[DocsKeys.CaseInsensitiveCategories] = "true";
 Settings[DocsKeys.CaseInsensitiveTags] = "true";
 Settings[DocsKeys.ImplicitInheritDoc] = true;
 
+//Pipelines.Remove(Docs.Code);
+//Pipelines.Remove(Docs.Api);
+Pipelines.Remove(Docs.RenderApi);
+Pipelines.Remove(Docs.ApiIndex);
+Pipelines.Remove(Docs.ApiSearchIndex);
+
+/*
+ * Add NAnt schema files to release folder
+ */
+Pipelines.InsertBefore(Docs.RenderPages,"XMLSchema",
+    ReadFiles("release/**/*.xsd"),
+    Tree(),
+    Meta(DocsKeys.ShowInSidebar, true),
+    Title("XML Schema"),
+    WriteFiles()
+);
+
+
 /*
 Pipelines.InsertBefore(Docs.RenderPages, "References"),
     Execute( ctx =>

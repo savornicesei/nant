@@ -33,7 +33,7 @@ Loggers extend the capabilities of listeners and add the following features:
 | [NAnt.Core.XmlLogger](#xmllogger)     |                              Generates output in XML format.                                                                                                                                                 | IBuildLogger                      |
 
 
-## DefaultLogger
+## DefaultLogger {#default-logger}
 
 Simply run NAnt normally, or:
 ```
@@ -41,7 +41,7 @@ Simply run NAnt normally, or:
 ```
 
 
-## MailLogger
+## MailLogger {#mail-logger}
 
 The MailLogger captures all output logged through DefaultLogger (standard NAnt output) and will send success and failure messages to unique e-mail lists, with control for turning off success or failure messages individually.
 
@@ -60,10 +60,10 @@ Properties controlling the operation of MailLogger are:
 | MailLogger.failure.attachments | The ID of a fileset representing a set of files to attach when the build fails.         | No.                                     |
 | MailLogger.success.attachments | The ID of a fileset representing a set of files to attach when the build is successful. | No.                                     |
 | MailLogger.body.encoding       | The encoding type of the body of the e-mail message.                                    | No, default is system's ANSI code page. |
-| MailLogger.smtp.username1      | The name of the user to login to the SMTP server.                                       | No.                                     |
-| MailLogger.smtp.password1      | The password of the specified user.                                                     | No.                                     |
-| MailLogger.smtp.enablessl1     | Specifies whether to use SSL to encrypt the connection.                                 | No, default is "false".                 |
-| MailLogger.smtp.port1          | The SMTP server port to connect to.                                                     | No, default is "25".                    |
+| MailLogger.smtp.username<sup>1</sup>      | The name of the user to login to the SMTP server.                                       | No.                                     |
+| MailLogger.smtp.password<sup>1</sup>      | The password of the specified user.                                                     | No.                                     |
+| MailLogger.smtp.enablessl<sup>1</sup>     | Specifies whether to use SSL to encrypt the connection.                                 | No, default is "false".                 |
+| MailLogger.smtp.port<sup>1</sup>          | The SMTP server port to connect to.                                                     | No, default is "25".                    |
 
 <sup>1</sup> Only available when NAnt is built targeting .NET Framework 1.1 (or equivalent) or higher.{: class="text-warning"}
     
@@ -106,7 +106,7 @@ Properties controlling the operation of MailLogger are:
     </project>
 ```       
 
-## XmlLogger
+## XmlLogger {#xml-logger}
 
 Writes all build information out to an XML file named *log.xml*{: class="text-primary"}, or the value of the *XmlLogger.file*{: class="text-primary"} property if present, when used as a listener. When used as a logger, it writes all output to either the console or to the value of *-logfile*{: class="text-primary"}.
 

@@ -27,7 +27,7 @@ The optional *description*{: class="text-primary"} attribute can be used to prov
 
 A target gets executed only once, even when more than one target depends on it (see the previous example). However, when the [*&lt;call&gt;*{: class="text-primary bold"}](http://nant.sourceforge.net/release/latest/help/tasks/call.html) task is used to execute a target, both the target and all its dependent targets will be re-executed.
 
-## Wild targets
+## Wild targets {#wild-targets}
 
 A target can be marked as _wild_ by setting the *name*{: class="text-primary"} attribute to "*". A build file can contain up to one wild target, and it is executed if and only if the invoked target does not exist in the current build file.  Wild targets let you define how to handle invalid requests, or provide generic behavior for unknown targets. For example:
 ```xml
