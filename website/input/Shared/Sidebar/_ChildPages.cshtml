@@ -7,8 +7,7 @@
 		root = parent;
 		parent = root.Document(Keys.Parent);
 	}	
-	
-	 Console.WriteLine($"-- Processing root {root.Metadata.Get(Keys.RelativeFilePath)}");
+
 	// Display the menu
 	IReadOnlyList<IDocument> children = root.DocumentList(Keys.Children);
 	if(children != null && children.Count > 0)

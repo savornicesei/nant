@@ -1,5 +1,9 @@
+---
+Title: XML Schema
+ShowInSidebar: true
+---
 <?xml version="1.0"?>
-<xs:schema xmlns:nant="http://nant.sf.net/release/0.92/nant.xsd" elementFormDefault="qualified" targetNamespace="http://nant.sf.net/release/0.92/nant.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:nant="http://nant.sf.net/release/latest/nant.xsd" elementFormDefault="qualified" targetNamespace="http://nant.sf.net/release/latest/nant.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:annotation>
     <xs:documentation>NAnt schema generated at 06/09/2012 07:28:04</xs:documentation>
   </xs:annotation>
