@@ -2,6 +2,7 @@
 #n Wyam.Yaml
 #n Wyam.Razor
 #n Wyam.Markdown
+#n Wyam.Html
 #n Wyam.CodeAnalysis
 
 #recipe Docs
@@ -40,21 +41,17 @@ Pipelines.Remove(Docs.ApiSearchIndex);
 /*
  * Add NAnt schema files to release folder
  */
- Pipelines.InsertBefore(Docs.RenderPages,"XMLSchema",
-    ReadFiles("release/**/*.xsd.md"),
-    FrontMatter(Yaml()),
-    WriteFiles()
-);
- /*
-Pipelines.InsertBefore(Docs.RenderPages,"XMLSchema",
-    ReadFiles("release/**.xsd"),
-    Tree(),
-    Meta(DocsKeys.ShowInSidebar, true),
-    Title("XML Schema"),
-    WriteFiles()
-);
-*/
-
+ Pipelines["Pages"].InsertBefore(
+     "CreateTreeAndSort",
+     new IModule[]{
+         new Concat{
+            new ReadFiles("release/**/nant.xsd"),
+            new Title("XML Schema"),
+            new Meta(DocsKeys.ShowInSidebar, true).ForEachDocument()
+        }
+     }
+ );
+ 
 /*
  * Add NAnt reference to release folder
  */
