@@ -5,7 +5,22 @@
 #n Wyam.Html
 #n Wyam.CodeAnalysis
 
+#n System.Xml.ReaderWriter
+#n System.Xml.XDocument
+
 #recipe Docs
+
+/*
+ * Custom classes for NAnt
+ */
+public static class CustomKeys
+{
+     /// <summary>
+    /// The release version to generate reference documentation.
+    /// </summary>
+    /// <type><see cref="string"/></type>
+    public const string Release = nameof(Release);
+}
 
 // Body code
 // Normalize the culture for the examples so they produce the same output regardless of system culture
@@ -14,11 +29,22 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture
 
 ContentStreamFactory = new MemoryContentStreamFactory();
 
-Settings[Keys.Host] = "";
-Settings[Keys.LinksUseHttps] = false;
+if(!Settings.ContainsKey(CustomKeys.Release))
+{
+    Settings[CustomKeys.Release] = "latest";
+}
+
+if(!Settings.ContainsKey(Keys.Host))
+{
+    Settings[Keys.Host] = string.Empty;
+}
+if(!Settings.ContainsKey(Keys.LinksUseHttps))
+{
+    Settings[Keys.LinksUseHttps] = false;
+}
 Settings[Keys.LinkRoot] = "/";
 Settings[DocsKeys.Title] = "NAnt2";
-Settings[DocsKeys.Logo] = "/assets/img/logo.png";
+Settings[DocsKeys.Logo] = "/assets/img/logo-dark.png";
 Settings[DocsKeys.ProjectFiles] = "../../src/**/{!.vscode,!bin,!obj,!packages,!*.Tests, !NDoc.*.NAnt,}/**/*.csproj";
 Settings[DocsKeys.IncludeDateInPostPath] = true;
 Settings[DocsKeys.BlogAtomPath] = "blog/feed/atom/index.xml";

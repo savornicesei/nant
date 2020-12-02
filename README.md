@@ -139,6 +139,29 @@ Building NAnt using Mono:
 Note: These instructions only apply to the source distribution of NAnt, as the
 binary distribution contains pre-built assemblies.
 
+Building  NAnt documentation
+
+Download the latest Wyam nuget package and extract the tools folder content on your hard drive (e.g. C:\Tools\Wyam for windows or /opt/wyam for linux).
+
+To generate local documentation (available at http://localhost:5080):
+
+```batch
+dotnet "C:\Wyam\wyam.dll" -w -p
+```
+
+```bash
+dotnet /opt/wyam/wyam.dll -w -p
+```
+
+To generate deployable documentation:
+
+```batch
+dotnet "C:\Wyam\wyam.dll" -g LinksUseHttps=true Host=nant2.github.io Release=latest
+```
+
+```bash
+dotnet /opt/wyam/wyam.dll -g LinksUseHttps=true Host=nant2.github.io Release=latest
+```
 
 Documentation
 -------------
