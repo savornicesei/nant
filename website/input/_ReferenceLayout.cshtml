@@ -1,0 +1,25 @@
+@{
+    Layout = "/_Master.cshtml";
+    ViewData[Keys.Title] = "&lt;" + Model["Title"] + "&gt;";
+}
+
+@section Infobar {	
+	<div id="infobar-headings"></div>
+}
+
+@section Search {	
+	@Html.Partial("_ReferenceSearch")	
+    <hr />
+}
+
+@section Sidebar {
+	@* @Html.Partial("Sidebar/_" + Model.String("Kind")) *@
+}
+
+<section class="content-header">
+    <h1>&lt;@Model["Title"]&gt;</h1>
+</section>
+<section class="content">
+    @RenderBody()
+</section>
+}

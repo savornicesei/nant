@@ -1,5 +1,4 @@
 @{
-    {
     List<Tuple<string, string>> pages = Context
         .Documents[Docs.Pages]
         .Where(x => x.Bool(DocsKeys.ShowInNavbar, true))
@@ -8,58 +7,22 @@
         .Where(x => !string.IsNullOrEmpty(x.Item1))
         .OrderBy(x => x.Item1)
         .ToList();
+
     if(Documents[Docs.BlogPosts].Any())
     {
         pages.Add(Tuple.Create(Context.String(DocsKeys.BlogTitle), Context.GetLink(Context.String(DocsKeys.BlogPath))));
     }
+
     if(Documents[Docs.Api].Any())
     {
         pages.Add(Tuple.Create("API", Context.GetLink(Context.DirectoryPath(DocsKeys.ApiPath))));
     }
-    foreach(Tuple<string, string> page in pages)
-    {
-        string active = Context.GetLink(Document).StartsWith(page.Item2) ? "active" : null;
-        <li class="@active"><a href="@(page.Item2)">@(page.Item1)</a></li>
-    }
-}
-
-/*
-    List<Tuple<string, string>> pages = new List<Tuple<string, string>>
-    {
-        Tuple.Create(Context.String(DocsKeys.BlogTitle), Context.GetLink(Context.String(DocsKeys.BlogPath))),
-        Tuple.Create("Documentation", Context.GetLink("docs")),
-        //Tuple.Create("Reference", Context.GetLink("latest")),
-        Tuple.Create("Releases", Context.GetLink("release")),
-        Tuple.Create("API", Context.GetLink(Context.DirectoryPath(DocsKeys.ApiPath))),
-        Tuple.Create("FAQ", Context.GetLink("faq")),
-        Tuple.Create("<i class=\"fa fa-github\"></i> Source", "https://github.com/savornicesei/NAnt2")
-    };
-
-    List<Tuple<string, string>> releases = new List<Tuple<string, string>>
-    {
-        Tuple.Create("latest", Context.GetLink("latest")),
-        Tuple.Create("v0.92", Context.GetLink("v0.92"))
-    };
+    
+    pages.Add(Tuple.Create("<i class=\"fa fa-github\" aria-hidden=\"true\"></i> Source", "https://github.com/savornicesei/NAnt2"));
 
     foreach(Tuple<string, string> page in pages)
     {
         string active = Context.GetLink(Document).StartsWith(page.Item2) ? "active" : null;
-        if(page.Item1 == "Releases")
-        {
-            <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">page.Item1 <span class="caret"></span></a>
-                <ul class="dropdown-menu">
-                    foreach(Tuple<string, string> release in releases)
-                    {
-                        <li class="@active"><a href="@(release.Item2)">@(release.Item1)</a></li>
-                    }
-                </ul>
-            </li>
-        }
-        else
-        {
-            <li class="@active"><a href="@(page.Item2)">@(page.Item1)</a></li>
-        }
+        <li class="@active"><a href="@(page.Item2)">@Html.Raw(page.Item1)</a></li>
     }
-*/
 }

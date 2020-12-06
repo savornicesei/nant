@@ -1,9 +1,11 @@
 // Preprocessor directives
-#n Wyam.Yaml
-#n Wyam.Razor
-#n Wyam.Markdown
-#n Wyam.Html
-#n Wyam.CodeAnalysis
+//#n Wyam.Yaml
+//#n Wyam.Razor
+//#n Wyam.Markdown
+//#n Wyam.Html
+//#n Wyam.CodeAnalysis
+
+#a **/*
 
 #n System.Xml.ReaderWriter
 #n System.Xml.XDocument
@@ -20,6 +22,38 @@ public static class CustomKeys
     /// </summary>
     /// <type><see cref="string"/></type>
     public const string Release = nameof(Release);
+
+    /// <summary>
+    /// The assembly where the reference is located.
+    /// </summary>
+    /// <returns></returns>
+    public const string NAntAssembly = nameof(NAntAssembly);
+
+    /// <summary>
+    /// The namespace where the reference is located.
+    /// </summary>
+    /// <returns></returns>
+    public const string NAntNamespace = nameof(NAntNamespace);
+
+    /// <summary>
+    /// The reference type: task, function, type, filter.
+    /// </summary>
+    /// <returns></returns>
+    public const string NAntRefType = nameof(NAntRefType);
+
+    /// <summary>
+    /// The new page title.
+    /// </summary>
+    /// <returns></returns>
+    public const string NewTitle = nameof(NewTitle);
+}
+
+public enum NAntRefType{
+    None,
+    Filters,
+    Tasks,
+    Functions,
+    Types
 }
 
 // Body code
@@ -45,7 +79,8 @@ if(!Settings.ContainsKey(Keys.LinksUseHttps))
 Settings[Keys.LinkRoot] = "/";
 Settings[DocsKeys.Title] = "NAnt2";
 Settings[DocsKeys.Logo] = "/assets/img/logo-dark.png";
-Settings[DocsKeys.ProjectFiles] = "../../src/**/{!.vscode,!bin,!obj,!packages,!*.Tests, !NDoc.*.NAnt,}/**/*.csproj";
+//Settings[DocsKeys.ProjectFiles] = "../../src/**/{!.vscode,!bin,!obj,!packages,!*.Tests, !NDoc.*.NAnt,}/**/*.csproj";
+Settings[DocsKeys.ProjectFiles] = "../../src/{NAnt.Core,NAnt.DotNet}/*.csproj";
 Settings[DocsKeys.IncludeDateInPostPath] = true;
 Settings[DocsKeys.BlogAtomPath] = "blog/feed/atom/index.xml";
 Settings[DocsKeys.BlogRssPath] = "blog/feed/rss/index.xml";
@@ -53,139 +88,150 @@ Settings[DocsKeys.BlogRdfPath] = null;
 Settings[DocsKeys.CaseInsensitiveAuthors] = "true";
 Settings[DocsKeys.CaseInsensitiveCategories] = "true";
 Settings[DocsKeys.CaseInsensitiveTags] = "true";
+Settings[DocsKeys.IgnoreFolders] = "_reference";
 Settings[DocsKeys.ImplicitInheritDoc] = true;
+
+bool noApi = true;
+bool noBlog = false;
+bool noPages = false;
 
 /*
  * Disable API doc generation while in development
  */
-//Pipelines.Remove(Docs.Code);
-//Pipelines.Remove(Docs.Api);
-Pipelines.Remove(Docs.RenderApi);
-Pipelines.Remove(Docs.ApiIndex);
-Pipelines.Remove(Docs.ApiSearchIndex);
+if(noApi)
+{
+    Pipelines.Remove(Docs.RenderApi);
+    Pipelines.Remove(Docs.ApiIndex);
+    Pipelines.Remove(Docs.ApiSearchIndex);
+}
+
+/*
+ * Disable blog posts while in development
+ */
+if(noBlog)
+{
+    Pipelines.Remove(Docs.BlogPosts);
+    Pipelines.Remove(Docs.BlogIndexes);
+    Pipelines.Remove(Docs.BlogCategories);
+    Pipelines.Remove(Docs.BlogTags);
+    Pipelines.Remove(Docs.BlogAuthors);
+    Pipelines.Remove(Docs.BlogArchives);
+    Pipelines.Remove(Docs.BlogYearlyArchives);
+    Pipelines.Remove(Docs.BlogFeed);
+    Pipelines.Remove(Docs.RenderBlogPosts);
+}
+
+/*
+ * Disable pages while in development
+ */
+if(noPages)
+{
+    Pipelines.Remove(Docs.Pages);
+    Pipelines.Remove(Docs.RenderPages);
+    Pipelines.Remove(Docs.Redirects);
+}
 
 /*
  * Add NAnt schema files to release folder
  */
- Pipelines["Pages"].InsertBefore(
-     "CreateTreeAndSort",
-     new IModule[]{
-         new Concat{
-            new ReadFiles("release/**/nant.xsd"),
-            new Title("XML Schema"),
-            new Meta(DocsKeys.ShowInSidebar, true).ForEachDocument()
+if(!noPages)
+{
+    Pipelines[Docs.Pages].InsertBefore(
+        "CreateTreeAndSort",
+        new IModule[]{
+            new Concat{
+                new ReadFiles("release/**/nant.xsd"),
+                new Title("XML Schema"),
+                new Meta(DocsKeys.ShowInSidebar, true).ForEachDocument()
+            }
         }
-     }
- );
- 
+    );
+}
 /*
  * Add NAnt reference to release folder
  */
-/*
-Pipelines.InsertBefore(Docs.RenderPages, "References"),
-    Execute( ctx =>
-        AnalyzeCSharp()
-        .WithProjects(ctx.List<string>(DocsKeys.ProjectFiles))
-    )
-*/
-/*
-public class KeysModel
-{
-    public string TargetType { get; set; }
-    public string Usage { get; set; } // If null, type will be scanned for const fields, otherwise <metadata> comments will be used
-    public bool AlphaSort { get; set; }
-    public string Intro { get; set; }
-
-    public KeysModel(string targetType, string usage, bool alphaSort = true)
-    {
-        TargetType = targetType;
-        Usage = usage;
-        AlphaSort = alphaSort;
-    }
-
-    public KeysModel(string targetType, bool alphaSort = true)
-        : this(targetType, null, alphaSort)
-    {        
-    }
-}
-
-Pipelines.InsertBefore(Docs.RenderPages, "References",
-    Execute(ctx =>
-	    AnalyzeCSharp()
-            .WithAssemblies(ctx.List<string>(DocsKeys.AssemblyFiles))
-            .WithProjects(ctx.List<string>(DocsKeys.ProjectFiles))
-            .WherePublic()
-            .WhereNamespaces(n => n.EndsWith("Tasks") || n.EndsWith("Types") || n.EndsWith("Functions") || n.EndsWith("Filters"))
-            .WhereSymbol(s => s.GetAttributes()
-                              .Any(a => a.AttributeClass.Name == "TaskNameAttribute" //task reference
-			                           || a.AttributeClass.Name == "ElementNameAttribute" //type reference
-                                       || a.AttributeClass.Name == "FunctionSetAttribute" //function reference
-                                    )
-                        )
-            .WithDocsForImplicitSymbols()
-            .WithWritePath(x => {
-                string name = x.String("DisplayName").ToLower();
-                if(name == "index")
-                {
-                    name = "idx";  // Special case for the Index module
-                }
-                
-                // Remove generic types
-                int genericParamsIndex = name.IndexOf("<");
-                if(genericParamsIndex != -1)
-                {
-                    name = name.Substring(0, genericParamsIndex);
-                }
-                
-                return new FilePath($"references/{name}.html");
-            })
+Pipelines.InsertAfter(Docs.Api, "Reference",
+    Documents(Docs.Api),
+    Where(
+         @doc.String(CodeAnalysisKeys.Kind) == "NamedType"
+        && @doc.DocumentList(CodeAnalysisKeys.Attributes)
+            .Any(attr => attr.String(CodeAnalysisKeys.Name) == "TaskNameAttribute"
+                        || attr.String(CodeAnalysisKeys.Name) == "ElementNameAttribute")
     ),
-    Branch(
-        SearchIndex(new SearchIndexItem(
-            @ctx.GetLink(@doc), 
-            @doc.String(CodeAnalysisKeys.DisplayName), 
-            @doc.String(CodeAnalysisKeys.DisplayName))
-        )
-            .WithScript((scriptBuilder, context) =>
-            {
-                // Use a custom tokenizer that splits on camel case characters
-                // https://github.com/olivernn/lunr.js/issues/230#issuecomment-244790648
-                scriptBuilder.Insert(0, @"
-                    var camelCaseTokenizer = function (builder) {
-                        var pipelineFunction = function (token) {
-                            var previous = '';
-                            var tokenStrings = token.toString().trim().split(/[\s\-]+|(?=[A-Z])/).reduce(function(acc, cur) {
-                                var current = cur.toLowerCase();
-                                if (acc.length === 0) {
-                                    previous = current;
-                                    return acc.concat(current);
-                                }
-                                previous = previous.concat(current);
-                                return acc.concat([current, previous]);
-                            }, []);
+    Meta(CustomKeys.NAntAssembly, @doc.Get<IDocument>("ContainingAssembly").String("Name")),
+    Meta(CustomKeys.NAntNamespace, @doc.Get<IDocument>("ContainingNamespace").String("Name")),
+    Trace((doc, ctx) => $"{doc.String(CodeAnalysisKeys.Kind)}-{doc.String(CodeAnalysisKeys.Name)}-{doc.String(CodeAnalysisKeys.FullName)}-{doc.String(CodeAnalysisKeys.QualifiedName)}"),
+    Meta(CustomKeys.NAntRefType, (doc, ctx) =>{
+        var nantAttrib = doc.DocumentList(CodeAnalysisKeys.Attributes)
+                            .First(attr => attr.String(CodeAnalysisKeys.Name) == "TaskNameAttribute"
+                                        || attr.String(CodeAnalysisKeys.Name) == "ElementNameAttribute");
+        switch (nantAttrib.String(CodeAnalysisKeys.Name))
+        {
+            case "TaskNameAttribute":
+                return NAntRefType.Tasks;
 
-                        // return token for each string
-                        // will copy any metadata on input token
-                        return tokenStrings.map(function(tokenString) {
-                        return token.clone(function(str) {
-                            return tokenString;
-                        })
-                        });
-                    }
-                        
-                    lunr.Pipeline.registerFunction(pipelineFunction, 'camelCaseTokenizer')
+            case "ElementNameAttribute":
+                return doc.DocumentList(CodeAnalysisKeys.BaseTypes).Any(bt => bt.String(CodeAnalysisKeys.Name) == "Filter")
+                        ? NAntRefType.Filters
+                        : NAntRefType.Types; //if derived from Fiter -> it's a filter
 
-                    builder.pipeline.before(lunr.stemmer, pipelineFunction)
-                    }");
-                scriptBuilder.Replace("this.ref('id');", @"this.ref('id'); this.use(camelCaseTokenizer);");
-                return scriptBuilder.ToString();
-            })
-            .WithPath("assets/js/modulesSearchIndex.js"),
-        WriteFiles()        
+            case "FunctionSetAttribute":
+                return NAntRefType.Functions;
+
+            default:
+                return NAntRefType.None;
+        }        
+    }),
+    Meta(Keys.Title, @doc.DocumentList(CodeAnalysisKeys.Attributes)
+                        .First(attr => attr.String(CodeAnalysisKeys.Name) == "TaskNameAttribute"
+                                        || attr.String(CodeAnalysisKeys.Name) == "ElementNameAttribute")
+                        .Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData)
+                        .ConstructorArguments[0].Value
     ),
-	Razor().WithLayout("/_RefsLayout.cshtml"),
-    Headings(),
-    HtmlInsert("div#infobar-headings", @ctx.GenerateInfobarHeadings(@doc)),
-	WriteFiles()
+    Meta(CodeAnalysisKeys.DisplayName, @doc.String(Keys.Title)),
+    Meta(Keys.WritePath, new FilePath($"reference/{@doc.String(CustomKeys.NAntRefType).ToLower()}/{@doc.String(Keys.Title).ToLower()}.html")),
+    Meta(Keys.RelativeFilePath, @doc.FilePath(Keys.WritePath)),
+    Trace((doc, ctx) => $"{doc.String(CustomKeys.NAntAssembly)}-{doc.String(CustomKeys.NAntNamespace)}-{doc.String(CustomKeys.NAntRefType)}-{doc.String(Keys.Title)}")
 );
-*/
+
+Pipelines.InsertAfter("Reference", "ReferenceTypes",
+    GroupBy(CustomKeys.NAntRefType, Documents("Reference")),
+    Meta(Keys.WritePath, new FilePath($"reference/{@doc.String(Keys.GroupKey).ToLower()}/index.html")),
+    Meta(Keys.RelativeFilePath, @doc.FilePath(Keys.WritePath)),
+    Merge(
+        ReadFiles($"_reference/{@doc.String(Keys.GroupKey).ToLower()}/index.md"),
+        new FrontMatter(new Yaml()),
+        new Markdown(),
+        Meta(CustomKeys.NewTitle, @doc.String(Keys.Title))
+    ).ForEachDocument(),
+    Meta(Keys.Title, @doc.String(CustomKeys.NewTitle))
+    /*Content((doc, ctx) => $"<?! Include \"_reference/{@doc.String(Keys.GroupKey).ToLower()}/index.md\" /?>?"),
+    Shortcodes(true),
+    new FrontMatter(new Yaml()),
+    new Markdown(),
+    Shortcodes(false)
+    */
+);
+
+Pipelines.InsertAfter(Docs.Pages, "RenderReference",
+    If(
+        ctx => ctx.Documents["Reference"].Any(),
+        Documents("Reference"),
+        Razor().WithLayout("/_ReferenceLayout.cshtml"),
+        Headings(),
+        HtmlInsert("div#infobar-headings", (doc, ctx) => ctx.GenerateInfobarHeadings(doc)),
+        WriteFiles()
+    ).WithoutUnmatchedDocuments()
+);
+
+Pipelines.InsertAfter("RenderReference", "ReferenceIndex",
+    Documents("ReferenceTypes"),
+    //Prepend((doc, ctx) => $"<?! Include \"_reference/{@doc.String(Keys.GroupKey).ToLower()}/index.md\" /?>?"),
+    //Shortcodes(true),
+    //new FrontMatter(new Yaml()),
+    //new Markdown(),
+    Razor()
+        .WithLayout("/_ReferenceIndex.cshtml"),
+    //Shortcodes(false),
+    WriteFiles()
+);
