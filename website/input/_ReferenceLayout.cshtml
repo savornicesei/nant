@@ -1,6 +1,8 @@
+@using Microsoft.AspNetCore.Html
+
 @{
     Layout = "/_Master.cshtml";
-    ViewData[Keys.Title] = "&lt;" + Model["Title"] + "&gt;";
+    ViewData[Keys.Title] = Model["Title"];
 }
 
 @section Infobar {	
@@ -17,9 +19,8 @@
 }
 
 <section class="content-header">
-    <h1>&lt;@Model["Title"]&gt;</h1>
+    <h1>@(new HtmlString(Model["NAntDisplayName"].ToString()))</h1>
 </section>
 <section class="content">
     @RenderBody()
 </section>
-}
