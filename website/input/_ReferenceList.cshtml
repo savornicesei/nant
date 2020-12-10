@@ -1,0 +1,55 @@
+@model IEnumerable<IDocument>
+@{
+    string category = (string)(ViewData["Category"] ?? "Name");
+    var setGroups = Model.GroupBy(x => x.String(DocsKeys.Tags))
+                         .Select(group => 
+                                    new { Key = group.Key,
+                                          Docs = group.OrderBy(x=> x.String(Keys.Title))})
+                         .OrderBy(x => x.Key);
+}
+@if(setGroups.Count() > 1)
+{
+    <ul>
+    @foreach(var setGroup in setGroups)
+    {
+        if(!string.IsNullOrEmpty(setGroup.Key))
+        {
+            string anchor = "#" + setGroup.Key;
+            <li><a href="@anchor">@setGroup.Key Functions</a></li>
+        } 
+    }
+    </ul>
+}
+@foreach(var setGroup in setGroups)
+{
+    if(!string.IsNullOrEmpty(setGroup.Key))
+    {
+        <a id="@setGroup.Key"></a>
+        <h1>@setGroup.Key Functions</h1>
+    }
+<div class="box">
+    <div class="box-body no-padding">
+        <table class="table table-striped table-hover two-cols-alt table-responsive">
+            <thead>
+                <tr>
+                    <th>@category.Trim(new char['s'])</th>
+                    <th>Summary</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var refDoc in setGroup.Docs)
+                {
+                    <tr>
+                        <td>
+                            <strong>@Context.GetTypeLink(refDoc, refDoc.String(NAntKeys.NAntDisplayName), false)</strong>
+                        </td>
+                        <td>
+                            @Html.Raw(refDoc.String(CodeAnalysisKeys.Summary))
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+}

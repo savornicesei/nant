@@ -587,7 +587,7 @@ DocumentConfig GetNantRefDisplayName = (doc, ctx) =>
                 //                                   doc.String(CodeAnalysisKeys.QualifiedName), 
                 //                                   displayName); 
             }
-            else
+            else if(IsNAntTask(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
             {
                 displayName = $"<{displayName}>";
                 // Wyam.Common.Tracing.Trace.Information("[GetNantRefDisplayName({0})] is not a NAntElement or a NAntFunction so displayName was set to {1}", 
@@ -715,6 +715,7 @@ Pipelines.InsertAfter(Docs.Api, "Reference",
     Meta(DocsKeys.Title, @doc.String(NAntKeys.NAntTitle)),
     //Meta(CodeAnalysisKeys.DisplayName, @doc.String(NAntKeys.NAntDisplayName)),
     Meta(DocsKeys.Category, @doc.String(NAntKeys.NAntRefType)),
+    Meta(DocsKeys.Tags, (doc, ctx) => { return IsNAntFunction(doc) ? new string[]{GetNAntFunctionSet(doc).Category} : new string[]{};}),
     Meta(Keys.WritePath, new FilePath($"reference/{@doc.String(NAntKeys.NAntRefType).ToLower()}/{@doc.String(NAntKeys.NAntTitle)}.html")),
     Meta(Keys.RelativeFilePath, @doc.FilePath(Keys.WritePath)),
     Trace($"[Reference pipe] {@doc.String(CodeAnalysisKeys.DisplayName)}-{@doc.String(CodeAnalysisKeys.Name)}-{@doc.String(NAntKeys.NAntRefType)}")
