@@ -19,7 +19,7 @@
 }
 
 <section class="content-header">
-    <h1>@(new HtmlString(Model["NAntDisplayName"].ToString()))</h1>
+    <h1>@(new HtmlString(Model.String(NAntKeys.NAntDisplayName).ToString()))</h1>
 </section>
 <section class="content">
     @RenderBody()

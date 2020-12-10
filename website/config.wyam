@@ -103,6 +103,11 @@ bool noPages = false;
     /// The NAnt reference is obsolete.
     /// </summary>
     public const string NAntObsolete = nameof(NAntObsolete);
+
+    /// <summary>
+    /// The resolution message for the obsolete NAnt reference.
+    /// </summary>
+    public const string NAntObsoleteMessage = nameof(NAntObsoleteMessage);
 };
 
 /// <summary>
@@ -307,7 +312,7 @@ Func<IDocument, bool> IsNAntNestedElementAttribute = (attr) =>
 /// <summary>
 /// If attribute is called <i>Obsolete</i>.
 /// </summary>
-Func<IDocument, bool> IsNAntObsoleteAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "Obsolete";
+Func<IDocument, bool> IsNAntObsoleteAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "ObsoleteAttribute";
 
 /// <summary>
 /// Returns true if the attribute is a NAnt task, function, filter, type, function set, parameter or nested element attribute.
@@ -425,7 +430,7 @@ Func<IDocument, bool> IsNAntEnum = (doc) =>
 /// </summary>
 /// <returns></returns>
 Func<IDocument, bool> IsNAntObsolete = 
-    (doc) => doc.DocumentList(CodeAnalysisKeys.Attributes) == null 
+    (doc) => doc.DocumentList(CodeAnalysisKeys.Attributes) != null 
                 && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntObsoleteAttribute(attr));
 
 /// <summary>
@@ -612,7 +617,7 @@ DocumentConfig GetNantObsoleteMessage = (doc, ctx) =>
         var attrDocs = doc.DocumentList(CodeAnalysisKeys.Attributes);
         if(attrDocs != null)
         {
-            Microsoft.CodeAnalysis.AttributeData attrib = attrDocs.First(attr => IsNAntObsolete(attr))
+            Microsoft.CodeAnalysis.AttributeData attrib = attrDocs.First(attr => IsNAntObsoleteAttribute(attr))
                                                             .Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
                                 
             text = attrib?.ConstructorArguments[0].Value.ToString();
@@ -711,7 +716,8 @@ Pipelines.InsertAfter(Docs.Api, "Reference",
     Meta(NAntKeys.NAntRefType, GetNantRefType),
     Meta(NAntKeys.NAntTitle, GetNantRefTitle),
     Meta(NAntKeys.NAntDisplayName, GetNantRefDisplayName),
-    Meta(NAntKeys.NAntObsolete, GetNantObsoleteMessage),
+    Meta(NAntKeys.NAntObsolete, (doc, ctx) => IsNAntObsolete(doc)),
+    Meta(NAntKeys.NAntObsoleteMessage, GetNantObsoleteMessage),
     Meta(DocsKeys.Title, @doc.String(NAntKeys.NAntTitle)),
     //Meta(CodeAnalysisKeys.DisplayName, @doc.String(NAntKeys.NAntDisplayName)),
     Meta(DocsKeys.Category, @doc.String(NAntKeys.NAntRefType)),

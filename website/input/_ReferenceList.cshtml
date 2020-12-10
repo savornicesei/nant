@@ -39,12 +39,25 @@
             <tbody>
                 @foreach(var refDoc in setGroup.Docs)
                 {
+                    bool isObsolete = refDoc.Get<bool>(NAntKeys.NAntObsolete);
                     <tr>
                         <td>
                             <strong>@Context.GetTypeLink(refDoc, refDoc.String(NAntKeys.NAntDisplayName), false)</strong>
+                            @if(isObsolete)
+                            {
+                                <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
+                            }
                         </td>
                         <td>
-                            @Html.Raw(refDoc.String(CodeAnalysisKeys.Summary))
+                            <p>
+                                @Html.Raw(refDoc.String(CodeAnalysisKeys.Summary))
+                            </p>
+                            @if(isObsolete)
+                            {
+                                <div class="alert alert-warning">
+                                    <i>Obsolete. @Html.Raw(refDoc.String(NAntKeys.NAntObsoleteMessage))</i>
+                                </div>
+                            }
                         </td>
                     </tr>
                 }
