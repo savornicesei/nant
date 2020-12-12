@@ -1,0 +1,162 @@
+@using Microsoft.AspNetCore.Html
+@using Wyam.Common.Tracing
+@{
+	NAntRefType docType = Model.Get<NAntRefType>(NAntKeys.NAntRefType);
+
+	Func<IDocument, bool> IsNAntProperty = (doc) => {
+		bool result = false;
+
+		if(docType == NAntRefType.Tasks || docType == NAntRefType.Types || docType == NAntRefType.Filters)
+		{
+			result = doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Property" 
+						&& doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+						&& doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+						&& doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => attr.String(CodeAnalysisKeys.Name) == "TaskAttributeAttribute");
+		}
+
+		return result;
+	};
+	
+	Func<IDocument, (string Name, bool Required)> GetAttributeDetails = (propDoc) =>{
+		string name = string.Empty;
+		bool required = false;
+
+		var docAttrs = propDoc.DocumentList(CodeAnalysisKeys.Attributes);
+		if(docAttrs != null)
+		{
+			Microsoft.CodeAnalysis.AttributeData attrib = docAttrs.First(attr => attr.String(CodeAnalysisKeys.Name) == "TaskAttributeAttribute")
+															.Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
+			
+			name = attrib.ConstructorArguments[0].Value.ToString();
+			if(attrib.ConstructorArguments.Length >= 2)
+			{
+				required = Convert.ToBoolean(attrib.ConstructorArguments[1].Value);
+			}
+		}
+
+		return (Name: name, Required: required);
+	};
+
+	Func<IDocument, (bool Obosolete, string Details)> GetObsoleteDetails = (propDoc) =>{
+		bool obsolete = false;
+		string details = string.Empty;
+
+		var docAttrs = propDoc.DocumentList(CodeAnalysisKeys.Attributes);
+		if(docAttrs != null)
+		{
+			Microsoft.CodeAnalysis.AttributeData attrib = docAttrs.FirstOrDefault(attr => attr.String(CodeAnalysisKeys.Name) == "ObsoleteAttribute")
+															?.Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
+			
+			if(attrib != null)
+			{
+				obsolete = true;
+				if(attrib.ConstructorArguments.Length >= 1)
+				{
+					details = attrib.ConstructorArguments[0].Value.ToString();
+				}
+			}
+		}
+
+		return (Obosolete: obsolete, Details: details);
+	};
+
+	IList<IDocument> properties =  Model.List<IDocument>("Members")
+										?.Where(x => IsNAntProperty(x))
+										?.OrderBy(x => x["DisplayName"])
+										?.ToList();
+	IList<IDocument> baseProperties = Model.List<IDocument>(CodeAnalysisKeys.BaseTypes)
+											?.Where(bt => bt.List<IDocument>("Members") != null)
+											?.SelectMany(bt => bt.List<IDocument>("Members"))
+											?.Where(x => x != null && IsNAntProperty(x))
+											?.OrderBy(x => x["DisplayName"])
+											?.Distinct()
+											?.ToList();
+}
+@{
+    if(properties != null && properties.Count > 0)
+    {
+        <text>
+			<h1 id="Parameters">Parameters</h1>
+			<div class="box">
+				<div class="box-body no-padding table-responsive">
+					<table class="table table-striped table-hover four-cols">
+						<thead>
+							<tr>
+								<th>Attribute</th>
+								<th>Type</th>
+								<th>Description</th>
+                                <th>Required</th>
+							</tr>
+						</thead>
+                        <tbody>
+							@foreach(IDocument property in properties)
+							{
+								@if(!baseProperties.Contains(property))
+								{
+									IDocument type = property.Get<IDocument>("Type");
+									var details = GetAttributeDetails(property);
+									var obsolete = GetObsoleteDetails(property);
+									<tr>
+										<td>
+											<b>
+												@details.Name
+												@if(obsolete.Obosolete)
+												{
+													<i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
+												}
+											</b>
+										</td>
+										<td>@(type == null ? new HtmlString(string.Empty) : Context.GetTypeLink(type))</td>
+										<td>
+											<div>@Html.Raw(property.String("Summary"))</div>
+											@if(obsolete.Obosolete)
+											{
+												<div class="alert alert-warning">
+													<i>Obsolete. @Html.Raw(obsolete.Details)</i>
+												</div>
+											}
+										</td>
+										<td>
+											@details.Required
+										</td>
+									</tr>
+								}
+							}
+							@if(baseProperties != null)
+							{
+								@foreach(IDocument property in baseProperties)
+								{
+									IDocument type = property.Get<IDocument>("Type");
+									var details = GetAttributeDetails(property);
+									var obsolete = GetObsoleteDetails(property);
+									<tr>
+										<td>
+											@details.Name
+											@if(obsolete.Obosolete)
+											{
+												<i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
+											}
+										</td>
+										<td>@(type == null ? new HtmlString(string.Empty) : Context.GetTypeLink(type))</td>
+										<td>
+											<div>@Html.Raw(property.String("Summary"))</div>
+											@if(obsolete.Obosolete)
+											{
+												<div class="alert alert-warning">
+													<i>Obsolete. @Html.Raw(obsolete.Details)</i>
+												</div>
+											}
+										</td>
+										<td>
+											@details.Required
+										</td>
+									</tr>
+								}
+							}
+                        </tbody>
+					</table>
+				</div>
+			</div>
+		</text>
+    }
+}

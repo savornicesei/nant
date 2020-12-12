@@ -1,0 +1,35 @@
+<h1 id="Requirements">Requirements</h1>
+@{
+    IDocument containingAssembly = Model.Get<IDocument>(CodeAnalysisKeys.ContainingAssembly);
+	IDocument containingNamespace = Model.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace);
+    string ver = Context.Settings.ContainsKey(NAntKeys.FullVersion) 
+                        ? (Context.Settings[NAntKeys.FullVersion]).ToString()
+                        : string.Empty;
+}
+@if(containingAssembly != null || containingNamespace != null)
+{
+    <div class="panel panel-default">
+        <div class="panel-body">	
+            <dl class="dl-horizontal">	
+               @if(containingAssembly != null)
+                {	
+                    <dt>Assembly</dt>
+                    <dd>@Context.GetTypeLink(containingAssembly)</dd>
+                }
+
+                @if(containingNamespace != null)
+                {	
+                    <dt>Namespace</dt>
+                    <dd>
+                        @Context.GetTypeLink(containingNamespace)
+                        @if(!string.IsNullOrEmpty(ver))
+                        {
+                            @Html.Raw($" (@ver)")
+                        }
+
+                    </dd>
+                }
+            </dl>
+        </div>
+    </div>
+}

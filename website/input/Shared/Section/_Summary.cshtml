@@ -1,5 +1,5 @@
 @{
-	string summary = Model.String("Summary");
+	string summary = Model.Get<string>("Summary");
 }
 @if(!string.IsNullOrWhiteSpace(summary))
 {	

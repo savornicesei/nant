@@ -1,0 +1,38 @@
+@using Microsoft.AspNetCore.Html;
+
+ @{
+    bool isObsolete = Model.Get<bool>(NAntKeys.NAntObsolete);
+    string usage = string.Empty;
+    IDocument returnType = Model.Get<IDocument>(CodeAnalysisKeys.ReturnType);
+    IReadOnlyList<ReferenceComment> parameters = Model.Get<IReadOnlyList<ReferenceComment>>(CodeAnalysisKeys.Params);
+    string returns = Model.String("Returns");
+ }   
+@if(isObsolete)
+{
+    <div class="alert alert-warning">
+        <i>Obsolete. @Html.Raw(Model.String(NAntKeys.NAntObsoleteMessage))</i>
+    </div>
+}
+ 
+
+@Html.Partial("Section\\_Summary")
+
+@{ 
+    @* AssemblyName assembly::get-name(assembly) *@
+    usage = $"{Context.GetTypeLink(returnType, false)} {Model.String(NAntKeys.NAntDisplayName)}({(parameters == null ? string.Empty : string.Join(", ", parameters.Select(p => p.Name)))})";
+}
+<pre><code class="text">@usage</code></pre>
+
+@Html.Partial("Section\\_Parameters")
+
+@* Return Value section *@
+@if(returnType != null || !string.IsNullOrWhiteSpace(returns))
+{
+	<h1 id="ReturnValue">Return Value</h1>
+	<div>@Html.Raw(returns) </div>
+}
+
+@Html.Partial("Section\\_Examples")
+@Html.Partial("Section\\_Remarks")
+@Html.Partial("Section\\_RefRequirements")
+@Html.Partial("Section\\_SeeAlso")

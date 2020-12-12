@@ -1,5 +1,7 @@
 @using Microsoft.AspNetCore.Html
 
+@model IDocument
+
 @{
     Layout = "/_Master.cshtml";
     ViewData[Keys.Title] = Model["Title"];
@@ -17,10 +19,41 @@
 @section Sidebar {
 	@* @Html.Partial("Sidebar/_" + Model.String("Kind")) *@
 }
-
+@{
+    NAntRefType docType = Model.Get<NAntRefType>(NAntKeys.NAntRefType);
+    string displayName = Model.String(NAntKeys.NAntDisplayName);
+    bool isObsolete = Model.Get<bool>(NAntKeys.NAntObsolete);
+}
 <section class="content-header">
-    <h1>@(new HtmlString(Model.String(NAntKeys.NAntDisplayName).ToString()))</h1>
+    <h1>
+        @switch(docType)
+        {
+            case NAntRefType.Types:
+            case NAntRefType.Filters:
+                @($"<{displayName}>");
+                break;
+            default:
+                @displayName;
+                break;
+        }
+         @if(isObsolete)
+        {
+            <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
+        }
+    </h1>
 </section>
 <section class="content">
+    @{
+        
+        switch(docType)
+        {
+            case NAntRefType.Functions:
+                @Html.Partial("Kind/_RefFunction") 
+                break;
+            default:
+                @Html.Partial("Kind/_Ref") 
+                break;            
+        }
+    }
     @RenderBody()
 </section>

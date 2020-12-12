@@ -1,0 +1,17 @@
+ @{
+     bool isObsolete = Model.Get<bool>(NAntKeys.NAntObsolete);
+     if(isObsolete)
+    {
+    <div class="alert alert-warning">
+        <i>Obsolete. @Html.Raw(Model.String(NAntKeys.NAntObsoleteMessage))</i>
+    </div>
+    }
+ }
+
+@Html.Partial("Section\\_Summary")
+@Html.Partial("Section\\_RefParameters")
+@Html.Partial("Section\\_RefNestedElements")
+@Html.Partial("Section\\_Examples")
+@Html.Partial("Section\\_Remarks")
+@Html.Partial("Section\\_RefRequirements")
+@Html.Partial("Section\\_SeeAlso")

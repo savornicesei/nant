@@ -47,7 +47,7 @@ Settings[DocsKeys.BlogRdfPath] = null;
 Settings[DocsKeys.CaseInsensitiveAuthors] = "true";
 Settings[DocsKeys.CaseInsensitiveCategories] = "true";
 Settings[DocsKeys.CaseInsensitiveTags] = "true";
-Settings[DocsKeys.IgnoreFolders] = "_reference";
+Settings[DocsKeys.IgnoreFolders] = "_reference, App_Code";
 Settings[DocsKeys.ImplicitInheritDoc] = true;
 
 /// <value>When true pipelines Docs.RenderApi, Docs.ApiIndex and Docs.ApiSearchIndex are not executed.</value>
@@ -69,10 +69,14 @@ bool noPages = false;
  public static class NAntKeys
 {
      /// <summary>
-    /// The release version to generate reference documentation.
+    /// The release version (short version, like latest or v0.95) to generate reference documentation.
     /// </summary>
-    /// <type><see cref="string"/></type>
     public const string Release = nameof(Release);
+
+    /// <summary>
+    /// the full version of the code used to generate documentation.
+    /// </summary>
+    public const string FullVersion = nameof(FullVersion);
 
     /// <summary>
     /// The assembly where the reference is located.
@@ -128,6 +132,11 @@ public enum NAntRefType{
 
 public class SlimMeta
 {
+    public string Title { get; set; }
+    public string Category{ get; set; }
+    public string Tags { get; set; }
+
+    //Code
     public string SourceString { get; set; }
     public string Id { get; set; }
     public string Accessibility { get; set; }
@@ -158,12 +167,26 @@ public class SlimMeta
     public string Value { get; set; }
     public string WritePath { get; set; }
 
+    //NAnt metadata
+    public string NAntAssembly{ get; set; }
+    public string NAntNamespace{ get; set; }
+    public string NAntTitle{ get; set; }
+    public string NAntDisplayName{ get; set; }
+    public NAntRefType NAntRefType{ get; set; }
+    public string NAntObsolete{ get; set; }
+    public string NAntObsoleteMessage{ get; set; }
+
     protected SlimMeta(){ }
 
     public SlimMeta(IDocument meta)
     {
         if(meta == null) return;
 
+        Title = meta.Get<string>(DocsKeys.Title);
+        Category = meta.Get<string>(DocsKeys.Category);
+        Tags = string.Join(", ", meta.Get<List<string>>(DocsKeys.Tags)?? new List<string>());
+
+        //Code 
         SourceString = meta.SourceString(); 
         Id = meta.Id;
         Accessibility = meta.Get<string>(CodeAnalysisKeys.Accessibility);
@@ -193,6 +216,15 @@ public class SlimMeta
         Syntax = meta.Get<string>(CodeAnalysisKeys.Syntax);
         Value = meta.Get<string>(CodeAnalysisKeys.Value);
         WritePath = meta.Get<string>(Keys.WritePath);
+
+        //NAnt metadata
+        NAntAssembly = meta.Get<string>(NAntKeys.NAntAssembly);
+        NAntNamespace = meta.Get<string>(NAntKeys.NAntNamespace);
+        NAntTitle = meta.Get<string>(NAntKeys.NAntTitle);
+        NAntDisplayName = meta.Get<string>(NAntKeys.NAntDisplayName);
+        NAntRefType = meta.Get<NAntRefType>(NAntKeys.NAntRefType);
+        NAntObsolete = meta.Get<string>(NAntKeys.NAntObsolete);
+        NAntObsoleteMessage = meta.Get<string>(NAntKeys.NAntObsoleteMessage);
     }
 };
 public class SlimDoc : SlimMeta
@@ -475,7 +507,7 @@ System.Func<IDocument, (string Prefix, string Category)> GetNAntFunctionSet = (d
     return (Prefix: prefix, Category: category);
 };
 
-DocumentConfig GetNantRefType = (doc, ctx) =>
+DocumentConfig GetNAntRefType = (doc, ctx) =>
 {
     NAntRefType nantType = NAntRefType.None;
 
@@ -522,7 +554,7 @@ DocumentConfig GetNantRefType = (doc, ctx) =>
     return nantType;
 };
 
-DocumentConfig GetNantRefTitle = (doc, ctx) =>
+DocumentConfig GetNAntRefTitle = (doc, ctx) =>
 {
     string title = string.Empty;
 
@@ -560,7 +592,7 @@ DocumentConfig GetNantRefTitle = (doc, ctx) =>
     return title;
 };
 
-DocumentConfig GetNantRefDisplayName = (doc, ctx) =>
+DocumentConfig GetNAntRefDisplayName = (doc, ctx) =>
 {
     string displayName = string.Empty;
 
@@ -608,7 +640,7 @@ DocumentConfig GetNantRefDisplayName = (doc, ctx) =>
 /// <summary>
 /// Returns the obsolete workaround message.
 /// </summary>
-DocumentConfig GetNantObsoleteMessage = (doc, ctx) =>
+DocumentConfig GetNAntObsoleteMessage = (doc, ctx) =>
 {
     string text = string.Empty;
 
@@ -625,6 +657,36 @@ DocumentConfig GetNantObsoleteMessage = (doc, ctx) =>
     }
 
     return text;
+};
+
+/// <summary>
+///  Returns the proper WritePath.
+/// </summary>
+DocumentConfig GetNAntWritePath = (doc, ctx) =>
+{
+    FilePath writePath;
+
+    //if doc namespace starts with NAnt then it's either in api or reference folder
+    //else it's a standard .NET reference and link it to https://docs.microsoft.com/en-us/dotnet/api/?term=<doc.QualifiedName>
+    IDocument  nDoc = doc.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace);
+    if(nDoc == null || nDoc.String(CodeAnalysisKeys.QualifiedName).StartsWith("NAnt"))
+    {
+        if(IsNAntRef(doc) || IsNAntElement(doc) || IsNAntEnum(doc))
+        {
+            writePath =  new FilePath($"reference/{doc.String(NAntKeys.NAntRefType).ToLower()}/{doc.String(NAntKeys.NAntTitle)}.html");
+        }
+        else
+        {
+            writePath = doc.Get<FilePath>(Keys.WritePath);
+        }
+    }
+    else
+    {
+        writePath = new FilePath("https://docs.microsoft.com/en-us/dotnet/api/?term=" 
+                                    + System.Net.WebUtility.UrlEncode(doc.String(CodeAnalysisKeys.QualifiedName)));
+    }
+
+    return writePath;
 };
 
 ContextConfig GetNAntRefLinks = (ctx) =>
@@ -710,30 +772,42 @@ else
  */
 Pipelines.InsertAfter(Docs.Api, "Reference",
     Documents(Docs.Api),
-    Where(IsNAntRef(@doc) || IsNAntElement(doc) || IsNAntEnum(doc)),
-    Meta(NAntKeys.NAntAssembly, @doc.Get<IDocument>("ContainingAssembly").String("Name")),
-    Meta(NAntKeys.NAntNamespace, @doc.Get<IDocument>("ContainingNamespace").String("Name")),
-    Meta(NAntKeys.NAntRefType, GetNantRefType),
-    Meta(NAntKeys.NAntTitle, GetNantRefTitle),
-    Meta(NAntKeys.NAntDisplayName, GetNantRefDisplayName),
+    //Where(IsNAntRef(@doc) || IsNAntElement(doc) || IsNAntEnum(doc) || ),
+    Meta(NAntKeys.NAntAssembly, @doc.Get<IDocument>("ContainingAssembly")?.String("Name")),
+    Meta(NAntKeys.NAntNamespace, @doc.Get<IDocument>("ContainingNamespace")?.String("Name")),
+    //Trace("[Reference pipe] After NAntNamespace"),
+    Meta(NAntKeys.NAntRefType, GetNAntRefType),
+    //Trace("[Reference pipe] After NAntRefType"),
+    Meta(NAntKeys.NAntTitle, GetNAntRefTitle),
+    //Trace("[Reference pipe] After NAntTitle"),
+    Meta(NAntKeys.NAntDisplayName, GetNAntRefDisplayName),
+    //Trace("[Reference pipe] After NAntDisplayName"),
     Meta(NAntKeys.NAntObsolete, (doc, ctx) => IsNAntObsolete(doc)),
-    Meta(NAntKeys.NAntObsoleteMessage, GetNantObsoleteMessage),
+    //Trace("[Reference pipe] After NAntObsolete"),
+    Meta(NAntKeys.NAntObsoleteMessage, GetNAntObsoleteMessage),
+    //Trace("[Reference pipe] After NAntObsoleteMessage"),
     Meta(DocsKeys.Title, @doc.String(NAntKeys.NAntTitle)),
+    //Trace("[Reference pipe] After Title"),
     //Meta(CodeAnalysisKeys.DisplayName, @doc.String(NAntKeys.NAntDisplayName)),
     Meta(DocsKeys.Category, @doc.String(NAntKeys.NAntRefType)),
+    //Trace("[Reference pipe] After Category"),
     Meta(DocsKeys.Tags, (doc, ctx) => { return IsNAntFunction(doc) ? new string[]{GetNAntFunctionSet(doc).Category} : new string[]{};}),
-    Meta(Keys.WritePath, new FilePath($"reference/{@doc.String(NAntKeys.NAntRefType).ToLower()}/{@doc.String(NAntKeys.NAntTitle)}.html")),
-    Meta(Keys.RelativeFilePath, @doc.FilePath(Keys.WritePath)),
-    Trace($"[Reference pipe] {@doc.String(CodeAnalysisKeys.DisplayName)}-{@doc.String(CodeAnalysisKeys.Name)}-{@doc.String(NAntKeys.NAntRefType)}")
+    //Trace("[Reference pipe] After Tags"),
+    Meta(Keys.WritePath, GetNAntWritePath),
+    //Trace("[Reference pipe] After WritePath"),
+    Meta(Keys.RelativeFilePath, @doc.FilePath(Keys.WritePath))
+    //Trace($"[Reference pipe] {@doc.String(CodeAnalysisKeys.DisplayName)}-{@doc.String(CodeAnalysisKeys.Name)}-{@doc.String(NAntKeys.NAntRefType)}")
 );
+
 /*
  Pipelines.InsertAfter("Reference", "Test",
-    Documents("Reference"),
+    Documents(Docs.Api),
     ForEach(
         Trace(DocToJson)
     )
  );
 */
+
 Pipelines.InsertAfter("Reference", "ReferenceTypes",
     GroupBy(NAntKeys.NAntRefType, Documents("Reference")),
     Trace($"[ReferenceTypes pipe] {@doc.String(Keys.GroupKey)}"),
@@ -753,15 +827,12 @@ Pipelines.InsertAfter("Reference", "ReferenceTypes",
 );
 
 Pipelines.InsertAfter(Docs.Pages, "RenderReference",
-    If(
-        ctx => ctx.Documents["Reference"].Any(),
-        Documents("Reference"),
-        Where(@doc.Get<NAntRefType>(NAntKeys.NAntRefType) != NAntRefType.None),
-        Razor().WithLayout("/_ReferenceLayout.cshtml"),
-        Headings(),
-        HtmlInsert("div#infobar-headings", (doc, ctx) => ctx.GenerateInfobarHeadings(doc)),
-        WriteFiles()
-    ).WithoutUnmatchedDocuments()
+    Documents("Reference"),
+    Where(IsNAntRef(@doc) || IsNAntElement(doc) || IsNAntEnum(doc)),
+    Razor().WithLayout("/_ReferenceLayout.cshtml"),
+    Headings(),
+    HtmlInsert("div#infobar-headings", (doc, ctx) => ctx.GenerateInfobarHeadings(doc)),
+    WriteFiles()
 );
 
 Pipelines.InsertAfter("RenderReference", "ReferenceIndex",
