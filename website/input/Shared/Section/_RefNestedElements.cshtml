@@ -1,0 +1,83 @@
+@using Microsoft.AspNetCore.Html
+@using Microsoft.AspNetCore.Mvc.ModelBinding
+@using System
+@using Wyam.Common.Tracing
+
+@model IDocument
+@{
+    Trace.Information($"[_RefParameters view] recursive calling with level {ViewData["level"]} - Model is {Model.SourceString()}");
+    @*The same document as Model but retrieved from References pipelines, containing the NAnt meta information*@
+    IDocument refModel = (IDocument)NAntUtils.GetNAntReferenceDoc(Model, Context);
+    if(refModel == null) 
+    {
+        Trace.Information($"[_RefParameters view] Reference model not found for {Model.SourceString()}");
+    };
+
+    int level = Convert.ToInt32(ViewData["level"]);
+    bool writeMainSection = level == 1 
+                                && NAntUtils.IsNAntRef(Model) 
+                                && Model.List<IDocument>("Members") != null
+                                && Model.List<IDocument>("Members").Any(x => NAntUtils.IsNAntNestedElement(x));
+    
+
+    Func<IDocument, (string Name, string ChildName)> GetNestedElementDetails = (propDoc) =>{
+		if(NAntUtils.IsNAntNestedElement(propDoc))
+		{
+			Tuple<object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntNestedElementAttribute);
+			return (Name: Convert.ToString(details.Item1) ?? string.Empty, ChildName: Convert.ToString(details.Item2) ?? string.Empty);
+		}
+		else
+		{
+			return (Name: string.Empty, ChildName: string.Empty);	
+		}
+	};
+}
+
+@if(writeMainSection)
+{
+    <h1 id="NestedElements">Nested Elements</h1>
+    <div class="container-fluid">
+        @{
+            IList<IDocument> nestedElements =  Model.List<IDocument>("Members")
+                                            .Where(x => NAntUtils.IsNAntNestedElement(x))
+                                            .OrderBy(x => x["DisplayName"])
+                                            .ToList();
+            Trace.Information($"[_RefParameters view] Found {(nestedElements == null ? 0 : nestedElements.Count)} nested elements for {Model.SourceString()}");
+        }
+        <div class="row">
+            @foreach(IDocument nElemDoc in nestedElements)
+            {
+                var newViewData = new ViewDataDictionary(this.ViewData);
+                newViewData["level"] = level + 1;
+                Trace.Information($"[_RefParameters view] recursive calling with level {newViewData["level"]} for document {nElemDoc.SourceString()}");
+                Html.RenderPartial("Section\\_RefNestedElements", nElemDoc, newViewData);
+            }
+
+        </div>
+    </div>
+}
+@if(NAntUtils.IsNAntNestedSingleElement(Model))
+{
+    IDocument type = Model.Get<IDocument>("Type");
+    IDocument refType = (IDocument)NAntUtils.GetNAntReferenceDoc(type, Context);
+
+    @* Trace.Information($"[_RefParameters view] level {ViewData["level"]}. Document '{Model.SourceString()}' is nested single element and it's ref doc is {NAntUtils.DocToJson(type, Context)}"); *@
+    @* Trace.Information($"[_RefParameters view] level {ViewData["level"]}. Document '{Model.SourceString()}' type is {refType.String(NAntKeys.NAntDisplayName)}"); *@
+
+    var linkName = refType.String(NAntKeys.NAntDisplayName);
+    var link = type == null ? string.Empty : Context.GetLink(refType.FilePath(Keys.WritePath));
+
+    <ul class="list-group">
+        <li class="list-group-item" style="border: none;">
+            <h3><a href="@link">&lt;@(linkName)&gt;</a></h3>
+            <p class="list-group-item-text">
+                @Model.Get("Summary")
+            </p>
+            <h3><a href="@link">&lt;/@(linkName)&gt;</a></h3>
+        </li>
+    </ul>
+}
+@if(NAntUtils.IsNAntNestedCollectionElement(Model))
+{
+    <p>IsNAntNestedCollectionElement</p>
+} 

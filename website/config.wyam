@@ -288,426 +288,452 @@ public class SlimDoc : SlimMeta
     }
 };
 
-DocumentConfig DocToJson = (doc, ctx) => {
-    Newtonsoft.Json.Serialization.DefaultContractResolver contractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver
-    {
-        NamingStrategy = new Newtonsoft.Json.Serialization.CamelCaseNamingStrategy
+/// <summary>
+/// Embeds all NAnt-related logic to be also accesible in Razor views.
+/// </summary>
+public static class NAntUtils{
+    public static DocumentConfig DocToJson = (doc, ctx) => {
+        Newtonsoft.Json.Serialization.DefaultContractResolver contractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver
         {
-            ProcessDictionaryKeys = false
-        }
+            NamingStrategy = new Newtonsoft.Json.Serialization.CamelCaseNamingStrategy
+            {
+                ProcessDictionaryKeys = false
+            }
+        };
+        var settings = new Newtonsoft.Json.JsonSerializerSettings()
+        { 
+            ContractResolver = contractResolver,
+            Formatting = Newtonsoft.Json.Formatting.Indented,
+            PreserveReferencesHandling = Newtonsoft.Json.PreserveReferencesHandling.All,
+            ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
+
+        };
+
+        SlimDoc slimDoc = new SlimDoc(doc);
+        string json = Newtonsoft.Json.JsonConvert.SerializeObject(slimDoc, settings);
+
+        return json;
     };
-    var settings = new Newtonsoft.Json.JsonSerializerSettings()
-    { 
-        ContractResolver = contractResolver,
-        Formatting = Newtonsoft.Json.Formatting.Indented,
-        PreserveReferencesHandling = Newtonsoft.Json.PreserveReferencesHandling.All,
-        ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
 
+    /// <summary>
+    /// If attribute is called <i>TaskNameAttribute</i> then it's a NAnt task attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntTaskAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "TaskNameAttribute";
+    /// <summary>
+    /// If attribute is called <i>FunctionAttribute</i> then it's a NAnt function attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntFunctionAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "FunctionAttribute";
+    /// <summary>
+    /// If attribute is called <i>FunctionSetAttribute</i> then it's a NAnt function set attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntFunctionSetAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "FunctionSetAttribute";
+    /// <summary>
+    /// If attribute is called <i>ElementNameAttribute</i> it's a NAnt filter or type attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntFilterOrTypeAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "ElementNameAttribute";
+    /// <summary>
+    /// If attribute is called <i>TaskAttributeAttribute</i> then it's a NAnt task parameter attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntParameterAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "TaskAttributeAttribute";
+    /// <summary>
+    /// If attribute is called <i>BuildElementAttribute</i> then it's a NAnt nested element attribute whose Type has Element attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntNestedSingleElementAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "BuildElementAttribute";
+    /// <summary>
+    /// If attribute is called <i>BuildElementArrayAttribute</i> or <i>BuildElementArrayAttribute</i> then it's a NAnt nested collection element attribute
+    /// containing one or more build elements.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntNestedCollectionElementAttribute = (attr) => 
+        attr.String(CodeAnalysisKeys.Name) == "BuildElementArrayAttribute" || attr.String(CodeAnalysisKeys.Name) == "BuildElementCollectionAttribute";
+    /// <summary>
+    /// If attribute is called <i>BuildElementAttribute</i>, <i>BuildElementArrayAttribute</i> or <i>BuildElementCollectionAttribute</i> 
+    /// then it's a NAnt task nested element attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntNestedElementAttribute = (attr) => 
+    {
+        return IsNAntNestedSingleElementAttribute(attr) || IsNAntNestedCollectionElementAttribute(attr);
+    };
+    /// <summary>
+    /// If attribute is called <i>Obsolete</i>.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntObsoleteAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "ObsoleteAttribute";
+
+    /// <summary>
+    /// Returns true if the attribute is a NAnt task, function, filter, type, function set, parameter or nested element attribute.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntRefAttribute = (attr) => IsNAntTaskAttribute(attr) || IsNAntFilterOrTypeAttribute(attr) 
+                                                                || IsNAntFunctionAttribute(attr) || IsNAntFunctionSetAttribute(attr) 
+                                                                || IsNAntParameterAttribute(attr) || IsNAntNestedElementAttribute(attr);
+
+
+    /// <summary>
+    /// If document has an attribute called <i>TaskNameAttribute</i> then it's a NAnt task.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntTask = 
+        (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class" 
+                    && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntTaskAttribute(attr));
+    /// <summary>
+    /// If document has an attribute called <i>FunctionAttribute</i> then it's a NAnt function.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntFunction = 
+        (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Method"
+                    && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public" 
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFunctionAttribute(attr));
+    /// <summary>
+    /// If document has an attribute called <i>FunctionSetAttribute</i> then it's a NAnt function set.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntFunctionSet = 
+        (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class" 
+                    && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFunctionSetAttribute(attr));
+    /// <summary>
+    /// If document has an attribute called <i>ElementNameAttribute</i> and derives from <i>Filter</i> then it's a NAnt filter.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntFilter = (doc) => 
+    {
+        return doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class"
+                && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+                && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFilterOrTypeAttribute(attr))
+                && doc.DocumentList(CodeAnalysisKeys.BaseTypes) != null
+                && doc.DocumentList(CodeAnalysisKeys.BaseTypes).Any(bt => bt.String(CodeAnalysisKeys.Name) == "Filter");
+    };
+    /// <summary>
+    /// If document has an attribute called <i>ElementNameAttribute</i> and is not derived from <i>Filter</i> then it's a NAnt type.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntType = (doc) => 
+    {
+        return doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class"
+                && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+                && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFilterOrTypeAttribute(attr))
+                && (doc.DocumentList(CodeAnalysisKeys.BaseTypes) == null
+                        || doc.DocumentList(CodeAnalysisKeys.BaseTypes).All(bt => bt.String(CodeAnalysisKeys.Name) != "Filter"));
+    };
+    /// <summary>
+    /// If document has an attribute called <i>TaskAttributeAttribute</i> then it's a NAnt task parameter.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntParameter = 
+        (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Property" 
+                    && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntParameterAttribute(attr));
+    /// <summary>
+    /// If document has an attribute called <i>BuildElementAttribute</i>then it's a NAnt single nested element.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntNestedSingleElement =
+        (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Property" 
+                    && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntNestedSingleElementAttribute(attr));
+     /// <summary>
+    /// If document has an attribute called <i>BuildElementArrayAttribute</i> or <i>BuildElementCollectionAttribute</i> then it's a NAnt nested collection element.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntNestedCollectionElement =
+        (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Property" 
+                    && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntNestedCollectionElementAttribute(attr));
+    /// <summary>
+    /// If document has an attribute called <i>BuildElementAttribute</i>, <i>BuildElementArrayAttribute</i> or <i>BuildElementCollectionAttribute</i> 
+    /// then it's a NAnt task nested element.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntNestedElement = (doc) => IsNAntNestedCollectionElement(doc) || IsNAntNestedSingleElement(doc);
+    /// <summary>
+    /// If document derives from <i>Element</i> then it's a NAnt element. 
+    /// </summary>
+    /// <returns></returns>
+    public static Func<IDocument, bool> IsNAntElement = (doc) =>
+    {
+        bool isPublic = doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public";
+        bool isClass = doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class";
+        bool derivesFromElement = doc.DocumentList(CodeAnalysisKeys.BaseTypes) != null
+                                    && doc.DocumentList(CodeAnalysisKeys.BaseTypes).Any(bt => bt.String(CodeAnalysisKeys.QualifiedName) == "NAnt.Core.Element");
+        bool notRef = doc.DocumentList(CodeAnalysisKeys.Attributes) == null 
+                        || doc.DocumentList(CodeAnalysisKeys.Attributes).All(attr => !IsNAntRefAttribute(attr));
+
+        // Wyam.Common.Tracing.Trace.Information(
+        //     "[IsNAntElement({0})] returned {1} because it is a class: {4} derived from Element: {2} and does not have a NAnt ref attribute: {3}", 
+        //     doc.String(CodeAnalysisKeys.QualifiedName),
+        //     isClass && derivesFromElement && notRef,
+        //     derivesFromElement,
+        //     notRef,
+        //     isClass);
+        //Wyam.Common.Tracing.Trace.Verbose(DocToJson(doc, null).ToString());
+        
+        return isPublic && isClass && derivesFromElement && notRef;
     };
 
-    SlimDoc slimDoc = new SlimDoc(doc);
-    string json = Newtonsoft.Json.JsonConvert.SerializeObject(slimDoc, settings);
-
-    return json;
-};
-
-/// <summary>
-/// If attribute is called <i>TaskNameAttribute</i> then it's a NAnt task attribute.
-/// </summary>
-Func<IDocument, bool> IsNAntTaskAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "TaskNameAttribute";
-/// <summary>
-/// If attribute is called <i>FunctionAttribute</i> then it's a NAnt function attribute.
-/// </summary>
-Func<IDocument, bool> IsNAntFunctionAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "FunctionAttribute";
-/// <summary>
-/// If attribute is called <i>FunctionSetAttribute</i> then it's a NAnt function set attribute.
-/// </summary>
-Func<IDocument, bool> IsNAntFunctionSetAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "FunctionSetAttribute";
-/// <summary>
-/// If attribute is called <i>ElementNameAttribute</i> it's a NAnt filter or type attribute.
-/// </summary>
-Func<IDocument, bool> IsNAntFilterOrTypeAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "ElementNameAttribute";
-/// <summary>
-/// If attribute is called <i>TaskAttributeAttribute</i> then it's a NAnt task parameter attribute.
-/// </summary>
-Func<IDocument, bool> IsNAntParameterAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "TaskAttributeAttribute";
-/// <summary>
-/// If attribute is called <i>BuildElementAttribute</i>, <i>BuildElementArrayAttribute</i> or <i>BuildElementCollectionAttribute</i> 
-/// then it's a NAnt task nested element attribute.
-/// </summary>
-Func<IDocument, bool> IsNAntNestedElementAttribute = (attr) => 
-{
-    return attr.String(CodeAnalysisKeys.Name) == "BuildElementAttribute"
-                || attr.String(CodeAnalysisKeys.Name) == "BuildElementArrayAttribute"
-                || attr.String(CodeAnalysisKeys.Name) == "BuildElementCollectionAttribute";
-};
-/// <summary>
-/// If attribute is called <i>Obsolete</i>.
-/// </summary>
-Func<IDocument, bool> IsNAntObsoleteAttribute = (attr) => attr.String(CodeAnalysisKeys.Name) == "ObsoleteAttribute";
-
-/// <summary>
-/// Returns true if the attribute is a NAnt task, function, filter, type, function set, parameter or nested element attribute.
-/// </summary>
-Func<IDocument, bool> IsNAntRefAttribute = (attr) => IsNAntTaskAttribute(attr) || IsNAntFilterOrTypeAttribute(attr) 
-                                                            || IsNAntFunctionAttribute(attr) || IsNAntFunctionSetAttribute(attr) 
-                                                            || IsNAntParameterAttribute(attr) || IsNAntNestedElementAttribute(attr);
-
-
-/// <summary>
-/// If document has an attribute called <i>TaskNameAttribute</i> then it's a NAnt task.
-/// </summary>
-Func<IDocument, bool> IsNAntTask = 
-    (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class" 
+    /// <summary>
+    /// If document derives from <i>System.Enum</i> and it's public then it's a NAnt enum.
+    /// </summary>
+    /// <returns></returns>
+    public static Func<IDocument, bool> IsNAntEnum = (doc) =>
+    {
+        return doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Enum"
                 && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
-                && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
-                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntTaskAttribute(attr));
-/// <summary>
-/// If document has an attribute called <i>FunctionAttribute</i> then it's a NAnt function.
-/// </summary>
-Func<IDocument, bool> IsNAntFunction = 
-    (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Method"
-                && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public" 
-                && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
-                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFunctionAttribute(attr));
-/// <summary>
-/// If document has an attribute called <i>FunctionSetAttribute</i> then it's a NAnt function set.
-/// </summary>
-Func<IDocument, bool> IsNAntFunctionSet = 
-    (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class" 
-                && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
-                && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
-                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFunctionSetAttribute(attr));
-/// <summary>
-/// If document has an attribute called <i>ElementNameAttribute</i> and derives from <i>Filter</i> then it's a NAnt filter.
-/// </summary>
-Func<IDocument, bool> IsNAntFilter = (doc) => 
-{
-    return doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class"
-            && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
-            && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
-            && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFilterOrTypeAttribute(attr))
-            && doc.DocumentList(CodeAnalysisKeys.BaseTypes) != null
-            && doc.DocumentList(CodeAnalysisKeys.BaseTypes).Any(bt => bt.String(CodeAnalysisKeys.Name) == "Filter");
-};
-/// <summary>
-/// If document has an attribute called <i>ElementNameAttribute</i> and is not derived from <i>Filter</i> then it's a NAnt type.
-/// </summary>
-Func<IDocument, bool> IsNAntType = (doc) => 
-{
-    return doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class"
-            && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
-            && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
-            && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntFilterOrTypeAttribute(attr))
-            && (doc.DocumentList(CodeAnalysisKeys.BaseTypes) == null
-                    || doc.DocumentList(CodeAnalysisKeys.BaseTypes).All(bt => bt.String(CodeAnalysisKeys.Name) != "Filter"));
-};
-/// <summary>
-/// If document has an attribute called <i>TaskAttributeAttribute</i> then it's a NAnt task parameter.
-/// </summary>
-Func<IDocument, bool> IsNAntParameter = 
-    (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Property" 
-                && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
-                && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
-                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntParameterAttribute(attr));
-/// <summary>
-/// If document has an attribute called <i>BuildElementAttribute</i>, <i>BuildElementArrayAttribute</i> or <i>BuildElementCollectionAttribute</i> 
-/// then it's a NAnt task nested element.
-/// </summary>
-Func<IDocument, bool> IsNAntNestedElement =
-    (doc) => doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Property" 
-                && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
-                && doc.DocumentList(CodeAnalysisKeys.Attributes) != null
-                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntNestedElementAttribute(attr));
-/// <summary>
-/// If document derives from <i>Element</i> then it's a NAnt element. 
-/// </summary>
-/// <returns></returns>
-Func<IDocument, bool> IsNAntElement = (doc) =>
-{
-    bool isPublic = doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public";
-    bool isClass = doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Class";
-    bool derivesFromElement = doc.DocumentList(CodeAnalysisKeys.BaseTypes) != null
-                                && doc.DocumentList(CodeAnalysisKeys.BaseTypes).Any(bt => bt.String(CodeAnalysisKeys.QualifiedName) == "NAnt.Core.Element");
-    bool notRef = doc.DocumentList(CodeAnalysisKeys.Attributes) == null 
-                    || doc.DocumentList(CodeAnalysisKeys.Attributes).All(attr => !IsNAntRefAttribute(attr));
+                && doc.DocumentList(CodeAnalysisKeys.BaseTypes) != null
+                && doc.DocumentList(CodeAnalysisKeys.BaseTypes).Any(bt => bt.String(CodeAnalysisKeys.QualifiedName) == "System.Enum")
+                && doc.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace).Get<string>(CodeAnalysisKeys.Name) != "Attributes"
+                && doc.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace).Get<string>(CodeAnalysisKeys.Name) != "Util";
+    };
 
-    // Wyam.Common.Tracing.Trace.Information(
-    //     "[IsNAntElement({0})] returned {1} because it is a class: {4} derived from Element: {2} and does not have a NAnt ref attribute: {3}", 
-    //     doc.String(CodeAnalysisKeys.QualifiedName),
-    //     isClass && derivesFromElement && notRef,
-    //     derivesFromElement,
-    //     notRef,
-    //     isClass);
-    //Wyam.Common.Tracing.Trace.Verbose(DocToJson(doc, null).ToString());
-    
-    return isPublic && isClass && derivesFromElement && notRef;
-};
-/// <summary>
-/// If document derives from <i>System.Enum</i> and it's public then it's a NAnt enum.
-/// </summary>
-/// <returns></returns>
-Func<IDocument, bool> IsNAntEnum = (doc) =>
-{
-    return doc.Get<string>(CodeAnalysisKeys.SpecificKind) == "Enum"
-            && doc.Get<string>(CodeAnalysisKeys.Accessibility) == "Public"
-            && doc.DocumentList(CodeAnalysisKeys.BaseTypes) != null
-            && doc.DocumentList(CodeAnalysisKeys.BaseTypes).Any(bt => bt.String(CodeAnalysisKeys.QualifiedName) == "System.Enum")
-            && doc.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace).Get<string>(CodeAnalysisKeys.Name) != "Attributes"
-            && doc.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace).Get<string>(CodeAnalysisKeys.Name) != "Util";
-};
+    /// <summary>
+    /// If document has an attribute called <i>Obsolete</i>.
+    /// </summary>
+    /// <returns></returns>
+    public static Func<IDocument, bool> IsNAntObsolete = 
+        (doc) => doc.DocumentList(CodeAnalysisKeys.Attributes) != null 
+                    && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntObsoleteAttribute(attr));
 
-/// <summary>
-/// If document has an attribute called <i>Obsolete</i>.
-/// </summary>
-/// <returns></returns>
-Func<IDocument, bool> IsNAntObsolete = 
-    (doc) => doc.DocumentList(CodeAnalysisKeys.Attributes) != null 
-                && doc.DocumentList(CodeAnalysisKeys.Attributes).Any(attr => IsNAntObsoleteAttribute(attr));
+    /// <summary>
+    /// Returns true if the given <see cref="IDocument"/> is a NAnt task, function, filter or type.
+    /// </summary>
+    public static Func<IDocument, bool> IsNAntRef = (doc) => IsNAntTask(doc) || IsNAntType(doc) || IsNAntFunction(doc) || IsNAntFilter(doc);
 
-/// <summary>
-/// Returns true if the given <see cref="IDocument"/> is a NAnt task, function, filter or type.
-/// </summary>
-Func<IDocument, bool> IsNAntRef = (doc) => IsNAntTask(doc) || IsNAntType(doc) || IsNAntFunction(doc) || IsNAntFilter(doc);
-
-/// <summary>
-/// Gets the function set prefix and category.
-/// </summary>
-System.Func<IDocument, (string Prefix, string Category)> GetNAntFunctionSet = (doc) =>
-{
-    string prefix = string.Empty;
-    string category = string.Empty;
-
-    bool isNAntFunction = IsNAntFunction(doc);
-    bool isNAntFunctionSet = IsNAntFunctionSet(doc);
-
-    //document is not a function or function set
-    if(!(isNAntFunction || isNAntFunctionSet))
+    /// <summary>
+    /// Extracts the first 2 atrribute parameters from the given document using the attribute selection function to select attributes.
+    /// </summary>
+    public static Func<IDocument, Func<IDocument, bool>, Tuple<object, object>> GetAttributeDetails = 
+        (doc, atributeSelection) =>
     {
-        return (Prefix: prefix, Category: category);
-    }
+        object item1 = null;
+        object item2 = null;
 
-    IDocument functionSetDoc = doc;
-    if(isNAntFunction)
-    {
-       functionSetDoc = doc.Get<IDocument>(CodeAnalysisKeys.ContainingType);   
-    }
-
-    if(functionSetDoc == null) throw new NullReferenceException("A NAnt class decorated with FunctionSet attribute was not found");
-
-    var attrDocs = functionSetDoc.DocumentList(CodeAnalysisKeys.Attributes);
-    if(attrDocs != null)
-    {
-        Microsoft.CodeAnalysis.AttributeData attrib = attrDocs.First(attr => IsNAntFunctionSetAttribute(attr))
-                                                        .Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
-        prefix = attrib.ConstructorArguments[0].Value.ToString();
-        category = attrib.ConstructorArguments[1].Value.ToString();
-    }
-
-    return (Prefix: prefix, Category: category);
-};
-
-DocumentConfig GetNAntRefType = (doc, ctx) =>
-{
-    NAntRefType nantType = NAntRefType.None;
-
-    if(IsNAntTask(doc))
-    {
-        nantType = NAntRefType.Tasks;
-    }
-    else if(IsNAntFilter(doc))
-    {
-        nantType = NAntRefType.Filters;
-    }
-    else if(IsNAntType(doc))
-    {
-        nantType = NAntRefType.Types;
-    }
-    else if(IsNAntFunction(doc))
-    {
-        nantType = NAntRefType.Functions;
-    }
-    else if(IsNAntFunctionSet(doc))
-    {
-        nantType = NAntRefType.FunctionSets;
-    }
-    else if(IsNAntParameter(doc))
-    {
-        nantType = NAntRefType.Parameters;
-    }
-    else if(IsNAntNestedElement(doc))
-    {
-        nantType = NAntRefType.NestedElements;
-    }
-    else if(IsNAntElement(doc))
-    {
-        nantType = NAntRefType.Elements;
-    }
-    else if(IsNAntEnum(doc))
-    {
-        nantType = NAntRefType.Enums;
-    }
-
-    // Wyam.Common.Tracing.Trace.Verbose("[GetNantRefType({0})] {0} is a NAntRefType.{1}", 
-    //                                 doc.String(CodeAnalysisKeys.QualifiedName), 
-    //                                 nantType);
-    return nantType;
-};
-
-DocumentConfig GetNAntRefTitle = (doc, ctx) =>
-{
-    string title = string.Empty;
-
-    if(IsNAntElement(doc) || IsNAntEnum(doc))
-    {
-        title = doc.String(CodeAnalysisKeys.QualifiedName);
-        // Wyam.Common.Tracing.Trace.Information("[GetNantRefTitle({0})] is a NAntElement and title was set to {1}", title, title);
-    }
-    else if(IsNAntRef(doc)|| IsNAntFunctionSet(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
-    {
-        var attrDocs = doc.DocumentList(CodeAnalysisKeys.Attributes);
-        if(attrDocs != null)
+        if (doc == null || atributeSelection == null)
         {
-            Microsoft.CodeAnalysis.AttributeData attrib = attrDocs.First(attr => IsNAntRefAttribute(attr))
-                                                            .Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
-                            
-            title = attrib?.ConstructorArguments[0].Value.ToString();   
-            // Wyam.Common.Tracing.Trace.Information("[GetNantRefTitle({0})] is not a NAntElement and title was set to {1}", 
-            //                                     doc.String(CodeAnalysisKeys.QualifiedName), 
-            //                                     title);     
+            return Tuple.Create(item1, item2);
         }
 
-        if(IsNAntFunction(doc))
+        var attrDoc = doc.DocumentList(CodeAnalysisKeys.Attributes)
+                        ?.FirstOrDefault(a => atributeSelection(a));
+        if(attrDoc != null)
         {
-            //Wyam.Common.Tracing.Trace.Information("[GetNantRefTitle({0})] is a NAnt function", doc.String(CodeAnalysisKeys.QualifiedName));
-            var functionSet = GetNAntFunctionSet(doc);
-            title = $"{functionSet.Prefix}.{title}";
-
-            // Wyam.Common.Tracing.Trace.Information("[GetNantRefTitle({0})] is not a NAntElement but is a NAnt function so title was set to {1}", 
-            //                                     doc.String(CodeAnalysisKeys.QualifiedName), 
-            //                                     title); 
+            Microsoft.CodeAnalysis.AttributeData attrib = attrDoc.Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
+            if(attrib != null)
+            {
+                if(attrib.ConstructorArguments.Length >= 1) item1 = attrib.ConstructorArguments[0].Value;
+                if(attrib.ConstructorArguments.Length >= 2) item2 = attrib.ConstructorArguments[1].Value;
+            }
         }
-    }
 
-    return title;
-};
+        return Tuple.Create(item1, item2);
+    };
 
-DocumentConfig GetNAntRefDisplayName = (doc, ctx) =>
-{
-    string displayName = string.Empty;
-
-    if(IsNAntElement(doc) || IsNAntEnum(doc))
+    public static DocumentConfig GetNAntRefType = (doc, ctx) =>
     {
-        displayName = doc.String(CodeAnalysisKeys.DisplayName);
-        // Wyam.Common.Tracing.Trace.Information("[GetNantRefDisplayName({0})] is a NAntElement and displayName was set to {1}", 
-        //                                       doc.String(CodeAnalysisKeys.QualifiedName), 
-        //                                       displayName); 
-    }
-    else if(IsNAntRef(doc)|| IsNAntFunctionSet(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
-    {
-        var attrDocs = doc.DocumentList(CodeAnalysisKeys.Attributes);
-        if(attrDocs != null)
+        NAntRefType nantType = NAntRefType.None;
+
+        if(IsNAntTask(doc))
         {
-            Microsoft.CodeAnalysis.AttributeData attrib = attrDocs.First(attr => IsNAntRefAttribute(attr))
-                                                            .Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
-                                
-            displayName = attrib?.ConstructorArguments[0].Value.ToString();
-            // Wyam.Common.Tracing.Trace.Information("[GetNantRefDisplayName({0})] is not a NAntElement and displayName was set to {1}", 
-            //                                       doc.String(CodeAnalysisKeys.QualifiedName), 
-            //                                       displayName); 
+            nantType = NAntRefType.Tasks;
+        }
+        else if(IsNAntFilter(doc))
+        {
+            nantType = NAntRefType.Filters;
+        }
+        else if(IsNAntType(doc))
+        {
+            nantType = NAntRefType.Types;
+        }
+        else if(IsNAntFunction(doc))
+        {
+            nantType = NAntRefType.Functions;
+        }
+        else if(IsNAntFunctionSet(doc))
+        {
+            nantType = NAntRefType.FunctionSets;
+        }
+        else if(IsNAntParameter(doc))
+        {
+            nantType = NAntRefType.Parameters;
+        }
+        else if(IsNAntNestedElement(doc))
+        {
+            nantType = NAntRefType.NestedElements;
+        }
+        else if(IsNAntElement(doc))
+        {
+            nantType = NAntRefType.Elements;
+        }
+        else if(IsNAntEnum(doc))
+        {
+            nantType = NAntRefType.Enums;
+        }
+
+        // Wyam.Common.Tracing.Trace.Verbose("[GetNantRefType({0})] {0} is a NAntRefType.{1}", 
+        //                                 doc.String(CodeAnalysisKeys.QualifiedName), 
+        //                                 nantType);
+        return nantType;
+    };
+
+    public static DocumentConfig GetNAntRefTitle = (doc, ctx) =>
+    {
+        string title = string.Empty;
+
+        if(IsNAntElement(doc) || IsNAntEnum(doc))
+        {
+            title = doc.String(CodeAnalysisKeys.QualifiedName);
+        }
+        else if(IsNAntRef(doc)|| IsNAntFunctionSet(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
+        {
+            Tuple<object, object> details = GetAttributeDetails(doc, IsNAntRefAttribute);
+            title = Convert.ToString(details.Item1) ?? string.Empty;
 
             if(IsNAntFunction(doc))
             {
-                var functionSet = GetNAntFunctionSet(doc);
-                displayName = $"{functionSet.Prefix}::{displayName}";
-                // Wyam.Common.Tracing.Trace.Information("[GetNantRefDisplayName({0})] is not a NAntElement but is a NantFunction so displayName was set to {1}", 
-                //                                   doc.String(CodeAnalysisKeys.QualifiedName), 
-                //                                   displayName); 
+                Tuple<object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
+                title = $"{Convert.ToString(fsDetails.Item1) ?? string.Empty}.{title}"; // function-set_prefix.function_title
+            }
+        }
+
+        return title;
+    };
+
+    public static DocumentConfig GetNAntRefDisplayName = (doc, ctx) =>
+    {
+        string displayName = string.Empty;
+
+        if(IsNAntElement(doc) || IsNAntEnum(doc))
+        {
+            displayName = doc.String(CodeAnalysisKeys.DisplayName);
+        }
+        else if(IsNAntRef(doc)|| IsNAntFunctionSet(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
+        {
+            Tuple<object, object> details = GetAttributeDetails(doc, IsNAntRefAttribute);
+            displayName = Convert.ToString(details.Item1) ?? string.Empty;
+            
+            if(IsNAntFunction(doc))
+            {
+                Tuple<object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
+                displayName = $"{Convert.ToString(fsDetails.Item1) ?? string.Empty}::{displayName}"; // function-set_prefix::function_title
             }
             else if(IsNAntTask(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
             {
-                displayName = $"<{displayName}>";
-                // Wyam.Common.Tracing.Trace.Information("[GetNantRefDisplayName({0})] is not a NAntElement or a NAntFunction so displayName was set to {1}", 
-                //                                   doc.String(CodeAnalysisKeys.QualifiedName), 
-                //                                   displayName); 
+                displayName = $"<{displayName}>"; 
             }
         }
-    }
 
-    return displayName;
-};
+        return displayName;
+    };
 
-/// <summary>
-/// Returns the obsolete workaround message.
-/// </summary>
-DocumentConfig GetNAntObsoleteMessage = (doc, ctx) =>
-{
-    string text = string.Empty;
-
-    if(IsNAntObsolete(doc))
+    /// <summary>
+    /// Returns the obsolete workaround message.
+    /// </summary>
+    public static DocumentConfig GetNAntObsoleteMessage = (doc, ctx) =>
     {
-        var attrDocs = doc.DocumentList(CodeAnalysisKeys.Attributes);
-        if(attrDocs != null)
+        string text = string.Empty;
+
+        if(IsNAntObsolete(doc))
         {
-            Microsoft.CodeAnalysis.AttributeData attrib = attrDocs.First(attr => IsNAntObsoleteAttribute(attr))
-                                                            .Get<Microsoft.CodeAnalysis.AttributeData>(CodeAnalysisKeys.AttributeData);
-                                
-            text = attrib?.ConstructorArguments[0].Value.ToString();
+            Tuple<object, object> details = GetAttributeDetails(doc, IsNAntObsoleteAttribute);
+            text = Convert.ToString(details.Item1) ?? string.Empty;
         }
-    }
 
-    return text;
-};
+        return text;
+    };
 
-/// <summary>
-///  Returns the proper WritePath.
-/// </summary>
-DocumentConfig GetNAntWritePath = (doc, ctx) =>
-{
-    FilePath writePath;
+    /// <summary>
+    /// Returns document tags based on document reference type. For functions it will return the function set Category.
+    /// </summary>
+    public static DocumentConfig GetNAntTags = (doc, ctx)=> {
+        List<string> tags = new List<string>();
 
-    //if doc namespace starts with NAnt then it's either in api or reference folder
-    //else it's a standard .NET reference and link it to https://docs.microsoft.com/en-us/dotnet/api/?term=<doc.QualifiedName>
-    IDocument  nDoc = doc.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace);
-    if(nDoc == null || nDoc.String(CodeAnalysisKeys.QualifiedName).StartsWith("NAnt"))
-    {
-        if(IsNAntRef(doc) || IsNAntElement(doc) || IsNAntEnum(doc))
+        if(IsNAntFunction(doc))
         {
-            writePath =  new FilePath($"reference/{doc.String(NAntKeys.NAntRefType).ToLower()}/{doc.String(NAntKeys.NAntTitle)}.html");
+            Tuple<object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
+            if(fsDetails.Item2 != null)
+            {
+                tags.Add(Convert.ToString(fsDetails.Item2));
+            }
+        }
+
+        return tags;
+    };
+
+    /// <summary>
+    ///  Returns the proper WritePath.
+    /// </summary>
+    public static DocumentConfig GetNAntWritePath = (doc, ctx) =>
+    {
+        FilePath writePath;
+
+        //if doc namespace starts with NAnt then it's either in api or reference folder
+        //else it's a standard .NET reference and link it to https://docs.microsoft.com/en-us/dotnet/api/?term=<doc.QualifiedName>
+        IDocument  nDoc = doc.Get<IDocument>(CodeAnalysisKeys.ContainingNamespace);
+        if(nDoc == null || nDoc.String(CodeAnalysisKeys.QualifiedName).StartsWith("NAnt"))
+        {
+            if(IsNAntRef(doc) || IsNAntElement(doc) || IsNAntEnum(doc))
+            {
+                writePath =  new FilePath($"reference/{doc.String(NAntKeys.NAntRefType).ToLower()}/{doc.String(NAntKeys.NAntTitle)}.html");
+            }
+            else
+            {
+                writePath = doc.Get<FilePath>(Keys.WritePath);
+            }
         }
         else
         {
-            writePath = doc.Get<FilePath>(Keys.WritePath);
+            writePath = new FilePath("https://docs.microsoft.com/en-us/dotnet/api/?term=" 
+                                        + System.Net.WebUtility.UrlEncode(doc.String(CodeAnalysisKeys.QualifiedName)));
         }
-    }
-    else
+
+        return writePath;
+    };
+
+    public static ContextConfig GetNAntRefLinks = (ctx) =>
     {
-        writePath = new FilePath("https://docs.microsoft.com/en-us/dotnet/api/?term=" 
-                                    + System.Net.WebUtility.UrlEncode(doc.String(CodeAnalysisKeys.QualifiedName)));
-    }
+        Dictionary<string, string> refLinks = new Dictionary<string, string>();
+        foreach(IDocument doc in ctx.Documents["Reference"])
+        {
+            string docName = doc.String(NAntKeys.NAntDisplayName);
+            if(!refLinks.ContainsKey(docName))
+            {
+                refLinks.Add(docName, ctx.GetLink(doc));
+            }
+            
+            docName = doc.String(CodeAnalysisKeys.QualifiedName);
+            if(!refLinks.ContainsKey(docName))
+            {
+                refLinks.Add(docName, ctx.GetLink(doc));
+            }
+            else
+            {
+                //Wyam.Common.Tracing.Trace.Verbose($"[NAntUtils.GetNAntRefLinks] Document {docName} already in url list with path {refLinks[docName]}. Cannot add {ctx.GetLink(doc)}");
+            }
+        }
 
-    return writePath;
-};
+        //additional, external links
+        refLinks.Add("al.exe", "https://docs.microsoft.com/en-us/dotnet/framework/tools/al-exe-assembly-linker");
+        refLinks.Add("cl.exe", "https://docs.microsoft.com/en-us/cpp/build/reference/compiler-command-line-syntax?view=msvc-160");
+        refLinks.Add("lib.exe", "https://docs.microsoft.com/en-us/cpp/build/reference/lib-reference?view=msvc-160");
+        refLinks.Add("link.exe", "https://docs.microsoft.com/en-us/cpp/build/reference/linking?view=msvc-160");
+        refLinks.Add("rc.exe", "https://docs.microsoft.com/en-us/windows/win32/menurc/using-rc-the-rc-command-line-");
+        refLinks.Add("tlbexp.exe", "https://docs.microsoft.com/en-us/dotnet/framework/tools/tlbexp-exe-type-library-exporter");
+        refLinks.Add("tlbimp.exe", "https://docs.microsoft.com/en-us/dotnet/framework/tools/tlbimp-exe-type-library-importer");
+        refLinks.Add("touch ", "https://www.man7.org/linux/man-pages/man1/touch.1.html");
 
-ContextConfig GetNAntRefLinks = (ctx) =>
-{
-    Dictionary<string, string> refLinks = new Dictionary<string, string>();
-    foreach(IDocument doc in ctx.Documents["Reference"])
+        return refLinks;
+    };
+
+    /// <summary>
+    /// Returns the document with the same sourceString and id from Resources pipelines because the list of documents forming the current document methods and properties do not contain the NAnt metadata.
+    /// </summary>
+    /// <returns></returns>
+    public static DocumentConfig GetNAntReferenceDoc = (doc, ctx) =>
     {
-        refLinks.Add(doc.String(CodeAnalysisKeys.QualifiedName), ctx.GetLink(doc));
-    }
+        if(doc == null) return null;
 
-    //additional, external links
-    refLinks.Add("al.exe", "https://docs.microsoft.com/en-us/dotnet/framework/tools/al-exe-assembly-linker");
-    refLinks.Add("cl.exe", "https://docs.microsoft.com/en-us/cpp/build/reference/compiler-command-line-syntax?view=msvc-160");
-    refLinks.Add("lib.exe", "https://docs.microsoft.com/en-us/cpp/build/reference/lib-reference?view=msvc-160");
-    refLinks.Add("link.exe", "https://docs.microsoft.com/en-us/cpp/build/reference/linking?view=msvc-160");
-    refLinks.Add("rc.exe", "https://docs.microsoft.com/en-us/windows/win32/menurc/using-rc-the-rc-command-line-");
-    refLinks.Add("tlbexp.exe", "https://docs.microsoft.com/en-us/dotnet/framework/tools/tlbexp-exe-type-library-exporter");
-    refLinks.Add("tlbimp.exe", "https://docs.microsoft.com/en-us/dotnet/framework/tools/tlbimp-exe-type-library-importer");
-    refLinks.Add("touch ", "https://www.man7.org/linux/man-pages/man1/touch.1.html");
-
-    return refLinks;
+        IDocument refDoc = ctx.Documents["Reference"]
+                              .First( r => r.Get<NAntRefType>(NAntKeys.NAntRefType) != NAntRefType.None
+                                        && r.Id == doc.Id 
+                                        && r.String(CodeAnalysisKeys.SymbolId) == doc.String(CodeAnalysisKeys.SymbolId));
+        return refDoc;
+    };
 };
 
 
@@ -772,28 +798,27 @@ else
  */
 Pipelines.InsertAfter(Docs.Api, "Reference",
     Documents(Docs.Api),
-    //Where(IsNAntRef(@doc) || IsNAntElement(doc) || IsNAntEnum(doc) || ),
     Meta(NAntKeys.NAntAssembly, @doc.Get<IDocument>("ContainingAssembly")?.String("Name")),
     Meta(NAntKeys.NAntNamespace, @doc.Get<IDocument>("ContainingNamespace")?.String("Name")),
     //Trace("[Reference pipe] After NAntNamespace"),
-    Meta(NAntKeys.NAntRefType, GetNAntRefType),
+    Meta(NAntKeys.NAntRefType, NAntUtils.GetNAntRefType),
     //Trace("[Reference pipe] After NAntRefType"),
-    Meta(NAntKeys.NAntTitle, GetNAntRefTitle),
+    Meta(NAntKeys.NAntTitle, NAntUtils.GetNAntRefTitle),
     //Trace("[Reference pipe] After NAntTitle"),
-    Meta(NAntKeys.NAntDisplayName, GetNAntRefDisplayName),
+    Meta(NAntKeys.NAntDisplayName, NAntUtils.GetNAntRefDisplayName),
     //Trace("[Reference pipe] After NAntDisplayName"),
-    Meta(NAntKeys.NAntObsolete, (doc, ctx) => IsNAntObsolete(doc)),
+    Meta(NAntKeys.NAntObsolete, (doc, ctx) => NAntUtils.IsNAntObsolete(doc)),
     //Trace("[Reference pipe] After NAntObsolete"),
-    Meta(NAntKeys.NAntObsoleteMessage, GetNAntObsoleteMessage),
+    Meta(NAntKeys.NAntObsoleteMessage, NAntUtils.GetNAntObsoleteMessage),
     //Trace("[Reference pipe] After NAntObsoleteMessage"),
     Meta(DocsKeys.Title, @doc.String(NAntKeys.NAntTitle)),
     //Trace("[Reference pipe] After Title"),
     //Meta(CodeAnalysisKeys.DisplayName, @doc.String(NAntKeys.NAntDisplayName)),
     Meta(DocsKeys.Category, @doc.String(NAntKeys.NAntRefType)),
     //Trace("[Reference pipe] After Category"),
-    Meta(DocsKeys.Tags, (doc, ctx) => { return IsNAntFunction(doc) ? new string[]{GetNAntFunctionSet(doc).Category} : new string[]{};}),
+    Meta(DocsKeys.Tags, NAntUtils.GetNAntTags),
     //Trace("[Reference pipe] After Tags"),
-    Meta(Keys.WritePath, GetNAntWritePath),
+    Meta(Keys.WritePath, NAntUtils.GetNAntWritePath),
     //Trace("[Reference pipe] After WritePath"),
     Meta(Keys.RelativeFilePath, @doc.FilePath(Keys.WritePath))
     //Trace($"[Reference pipe] {@doc.String(CodeAnalysisKeys.DisplayName)}-{@doc.String(CodeAnalysisKeys.Name)}-{@doc.String(NAntKeys.NAntRefType)}")
@@ -828,7 +853,7 @@ Pipelines.InsertAfter("Reference", "ReferenceTypes",
 
 Pipelines.InsertAfter(Docs.Pages, "RenderReference",
     Documents("Reference"),
-    Where(IsNAntRef(@doc) || IsNAntElement(doc) || IsNAntEnum(doc)),
+    Where(NAntUtils.IsNAntRef(@doc) || NAntUtils.IsNAntElement(doc) || NAntUtils.IsNAntEnum(doc)),
     Razor().WithLayout("/_ReferenceLayout.cshtml"),
     Headings(),
     HtmlInsert("div#infobar-headings", (doc, ctx) => ctx.GenerateInfobarHeadings(doc)),
@@ -839,6 +864,6 @@ Pipelines.InsertAfter("RenderReference", "ReferenceIndex",
     Documents("ReferenceTypes"),
     Razor()
         .WithLayout("/_ReferenceIndex.cshtml"),
-    AutoLink(GetNAntRefLinks).WithQuerySelector("code").WithMatchOnlyWholeWord(),
+    AutoLink(NAntUtils.GetNAntRefLinks).WithQuerySelector("code").WithMatchOnlyWholeWord(),
     WriteFiles()
 );
