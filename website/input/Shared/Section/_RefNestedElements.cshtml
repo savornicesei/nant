@@ -64,7 +64,7 @@
     @* Trace.Information($"[_RefParameters view] level {ViewData["level"]}. Document '{Model.SourceString()}' is nested single element and it's ref doc is {NAntUtils.DocToJson(type, Context)}"); *@
     @* Trace.Information($"[_RefParameters view] level {ViewData["level"]}. Document '{Model.SourceString()}' type is {refType.String(NAntKeys.NAntDisplayName)}"); *@
 
-    var linkName = refType.String(NAntKeys.NAntDisplayName);
+    var linkName = GetNestedElementDetails(Model).Name;
     var link = type == null ? string.Empty : Context.GetLink(refType.FilePath(Keys.WritePath));
 
     <ul class="list-group">
