@@ -498,15 +498,16 @@ public static class NAntUtils{
     /// <summary>
     /// Extracts the first 2 atrribute parameters from the given document using the attribute selection function to select attributes.
     /// </summary>
-    public static Func<IDocument, Func<IDocument, bool>, Tuple<object, object>> GetAttributeDetails = 
+    public static Func<IDocument, Func<IDocument, bool>, Tuple<object, object, object>> GetAttributeDetails = 
         (doc, atributeSelection) =>
     {
         object item1 = null;
         object item2 = null;
+        object item3 = null;
 
         if (doc == null || atributeSelection == null)
         {
-            return Tuple.Create(item1, item2);
+            return Tuple.Create(item1, item2, item3);
         }
 
         var attrDoc = doc.DocumentList(CodeAnalysisKeys.Attributes)
@@ -518,10 +519,11 @@ public static class NAntUtils{
             {
                 if(attrib.ConstructorArguments.Length >= 1) item1 = attrib.ConstructorArguments[0].Value;
                 if(attrib.ConstructorArguments.Length >= 2) item2 = attrib.ConstructorArguments[1].Value;
+                if(attrib.ConstructorArguments.Length >= 3) item3 = attrib.ConstructorArguments[2].Value;
             }
         }
 
-        return Tuple.Create(item1, item2);
+        return Tuple.Create(item1, item2, item3);
     };
 
     public static DocumentConfig GetNAntRefType = (doc, ctx) =>
@@ -581,12 +583,12 @@ public static class NAntUtils{
         }
         else if(IsNAntRef(doc)|| IsNAntFunctionSet(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
         {
-            Tuple<object, object> details = GetAttributeDetails(doc, IsNAntRefAttribute);
+            Tuple<object, object, object> details = GetAttributeDetails(doc, IsNAntRefAttribute);
             title = Convert.ToString(details.Item1) ?? string.Empty;
 
             if(IsNAntFunction(doc))
             {
-                Tuple<object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
+                Tuple<object, object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
                 title = $"{Convert.ToString(fsDetails.Item1) ?? string.Empty}.{title}"; // function-set_prefix.function_title
             }
         }
@@ -604,12 +606,12 @@ public static class NAntUtils{
         }
         else if(IsNAntRef(doc)|| IsNAntFunctionSet(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
         {
-            Tuple<object, object> details = GetAttributeDetails(doc, IsNAntRefAttribute);
+            Tuple<object, object, object> details = GetAttributeDetails(doc, IsNAntRefAttribute);
             displayName = Convert.ToString(details.Item1) ?? string.Empty;
             
             if(IsNAntFunction(doc))
             {
-                Tuple<object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
+                Tuple<object, object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
                 displayName = $"{Convert.ToString(fsDetails.Item1) ?? string.Empty}::{displayName}"; // function-set_prefix::function_title
             }
             else if(IsNAntTask(doc) || IsNAntParameter(doc) || IsNAntNestedElement(doc))
@@ -630,7 +632,7 @@ public static class NAntUtils{
 
         if(IsNAntObsolete(doc))
         {
-            Tuple<object, object> details = GetAttributeDetails(doc, IsNAntObsoleteAttribute);
+            Tuple<object, object, object> details = GetAttributeDetails(doc, IsNAntObsoleteAttribute);
             text = Convert.ToString(details.Item1) ?? string.Empty;
         }
 
@@ -645,7 +647,7 @@ public static class NAntUtils{
 
         if(IsNAntFunction(doc))
         {
-            Tuple<object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
+            Tuple<object, object, object> fsDetails = GetAttributeDetails(doc.Get<IDocument>(CodeAnalysisKeys.ContainingType), IsNAntFunctionSetAttribute);
             if(fsDetails.Item2 != null)
             {
                 tags.Add(Convert.ToString(fsDetails.Item2));
@@ -734,6 +736,32 @@ public static class NAntUtils{
                                         && r.String(CodeAnalysisKeys.SymbolId) == doc.String(CodeAnalysisKeys.SymbolId));
         return refDoc;
     };
+
+    /// <summary>
+    /// Returns a tuple containing the NAnt property name and if it's required.
+    /// </summary>
+    /// <param name="propDoc">An IDocument for a class property.</param>
+    public static (string Name, bool Required) GetTaskDetails(IDocument propDoc)
+    {		
+		Tuple<object, object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntParameterAttribute);
+		return (Name: Convert.ToString(details.Item1) ?? string.Empty, Required: Convert.ToBoolean(details.Item2));
+	}
+
+    /// <summary>
+    /// Returns a tuple containing the Obsolete attribute details for the given property IDocument.
+    /// </summary>
+	public static (bool Obsolete, string Details) GetObsoleteDetails( IDocument propDoc)
+    {
+		if(NAntUtils.IsNAntObsolete(propDoc))
+		{
+			Tuple<object, object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntObsoleteAttribute);
+			return (Obsolete: true, Details: Convert.ToString(details.Item1) ?? string.Empty);
+		}
+		else
+		{
+			return (Obsolete: false, Details: string.Empty);	
+		}
+	}
 };
 
 

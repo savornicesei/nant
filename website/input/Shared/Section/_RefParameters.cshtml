@@ -1,25 +1,13 @@
 @using Microsoft.AspNetCore.Html
 @using System
 @using Wyam.Common.Tracing
-@{
-	NAntRefType docType = Model.Get<NAntRefType>(NAntKeys.NAntRefType);
-	
-	Func<IDocument, (string Name, bool Required)> GetTaskDetails = (propDoc) =>{		
-		Tuple<object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntParameterAttribute);
-		return (Name: Convert.ToString(details.Item1) ?? string.Empty, Required: Convert.ToBoolean(details.Item2));
-	};
 
-	Func<IDocument, (bool Obsolete, string Details)> GetObsoleteDetails = (propDoc) =>{
-		if(NAntUtils.IsNAntObsolete(propDoc))
-		{
-			Tuple<object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntObsoleteAttribute);
-			return (Obsolete: true, Details: Convert.ToString(details.Item1) ?? string.Empty);
-		}
-		else
-		{
-			return (Obsolete: false, Details: string.Empty);	
-		}
-	};
+@model IDocument
+@{
+	int level = ViewData.ContainsKey("level") ? Convert.ToInt32(ViewData["level"]) : 1;
+
+	NAntRefType docType = Model.Get<NAntRefType>(NAntKeys.NAntRefType);
+	Trace.Information($"[_RefParameters view] level {level}, docType {docType} - Model is {Model.SourceString()}");
 
 	IList<IDocument> properties =  Model.List<IDocument>("Members")
 										?.Where(x => NAntUtils.IsNAntParameter(x))
@@ -37,7 +25,14 @@
     if(properties != null && properties.Count > 0)
     {
         <text>
-			<h1 id="Parameters">Parameters</h1>
+			@if(level == 1)
+			{
+				<h1 id="Parameters">Parameters</h1>
+			}
+			else{
+				var headerId = Model.String("Name") + "Parameters";
+				<h3 id="@headerId">Parameters</h3>
+			}
 			<div class="box">
 				<div class="box-body no-padding table-responsive">
 					<table class="table table-striped table-hover four-cols">
@@ -55,8 +50,8 @@
 								@if(!baseProperties.Contains(property))
 								{
 									IDocument type = property.Get<IDocument>("Type");
-									var details = GetTaskDetails(property);
-									var obsolete = GetObsoleteDetails(property);
+									var details = NAntUtils.GetTaskDetails(property);
+									var obsolete = NAntUtils.GetObsoleteDetails(property);
 									<tr>
 										<td>
 											<b>
@@ -88,8 +83,8 @@
 								@foreach(IDocument property in baseProperties)
 								{
 									IDocument type = property.Get<IDocument>("Type");
-									var details = GetTaskDetails(property);
-									var obsolete = GetObsoleteDetails(property);
+									var details = NAntUtils.GetTaskDetails(property);
+									var obsolete = NAntUtils.GetObsoleteDetails(property);
 									<tr>
 										<td>
 											@details.Name

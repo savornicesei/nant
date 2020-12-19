@@ -6,6 +6,9 @@
 @model IDocument
 @{
     Trace.Information($"[_RefParameters view] recursive calling with level {ViewData["level"]} - Model is {Model.SourceString()}");
+
+    int level = ViewData.ContainsKey("level") ? Convert.ToInt32(ViewData["level"]) : 1;
+
     @*The same document as Model but retrieved from References pipelines, containing the NAnt meta information*@
     IDocument refModel = (IDocument)NAntUtils.GetNAntReferenceDoc(Model, Context);
     if(refModel == null) 
@@ -13,17 +16,14 @@
         Trace.Information($"[_RefParameters view] Reference model not found for {Model.SourceString()}");
     };
 
-    int level = Convert.ToInt32(ViewData["level"]);
-    bool writeMainSection = level == 1 
-                                && NAntUtils.IsNAntRef(Model) 
-                                && Model.List<IDocument>("Members") != null
-                                && Model.List<IDocument>("Members").Any(x => NAntUtils.IsNAntNestedElement(x));
+    bool hasNestedElements = Model.List<IDocument>("Members") != null
+                                && Model.List<IDocument>("Members").Any(x => NAntUtils.IsNAntNestedElement(x)); 
     
 
     Func<IDocument, (string Name, string ChildName)> GetNestedElementDetails = (propDoc) =>{
 		if(NAntUtils.IsNAntNestedElement(propDoc))
 		{
-			Tuple<object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntNestedElementAttribute);
+			Tuple<object, object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntNestedElementAttribute);
 			return (Name: Convert.ToString(details.Item1) ?? string.Empty, ChildName: Convert.ToString(details.Item2) ?? string.Empty);
 		}
 		else
@@ -31,12 +31,24 @@
 			return (Name: string.Empty, ChildName: string.Empty);	
 		}
 	};
+
+    @* Func<string, IDocument> GetChildElement = (elemName) =>
+    {
+        return Context.Documents["Reference"]
+                    .First( r => r.Get<NAntRefType>(NAntKeys.NAntRefType) != NAntRefType.None
+                                        && r.Id == doc.Id 
+                                        && r.String(CodeAnalysisKeys.SymbolId) == doc.String(CodeAnalysisKeys.SymbolId));
+    }; *@
 }
 
-@if(writeMainSection)
+@if(hasNestedElements)
 {
-    <h1 id="NestedElements">Nested Elements</h1>
-    <div class="container-fluid">
+    var heading = level == 1 ? "h1" : "h3";
+    var headingId = level == 1 ? "NestedElements" : Model.String("Name") + "NestedElements";
+    var divClass = "container-fluid";
+
+    @Html.Raw($@"<{heading} id=""{headingId}"">Nested elements</{heading}>");
+    <div class="@divClass">
         @{
             IList<IDocument> nestedElements =  Model.List<IDocument>("Members")
                                             .Where(x => NAntUtils.IsNAntNestedElement(x))
@@ -44,20 +56,18 @@
                                             .ToList();
             Trace.Information($"[_RefParameters view] Found {(nestedElements == null ? 0 : nestedElements.Count)} nested elements for {Model.SourceString()}");
         }
-        <div class="row">
-            @foreach(IDocument nElemDoc in nestedElements)
-            {
-                var newViewData = new ViewDataDictionary(this.ViewData);
-                newViewData["level"] = level + 1;
-                Trace.Information($"[_RefParameters view] recursive calling with level {newViewData["level"]} for document {nElemDoc.SourceString()}");
-                Html.RenderPartial("Section\\_RefNestedElements", nElemDoc, newViewData);
-            }
-
-        </div>
+        @foreach(IDocument nElemDoc in nestedElements)
+        {
+            var newViewData = new ViewDataDictionary(this.ViewData);
+            newViewData["level"] = level + 1;
+            Trace.Information($"[_RefNestedElements view] recursive calling with level {newViewData["level"]} for document {nElemDoc.SourceString()}");
+            Html.RenderPartial("Section\\_RefNestedElements", nElemDoc, newViewData);
+        }
     </div>
 }
 @if(NAntUtils.IsNAntNestedSingleElement(Model))
 {
+    @*The document for Model type: the one contained in Model and the one retrieved from References pipelines, containing the NAnt meta information *@
     IDocument type = Model.Get<IDocument>("Type");
     IDocument refType = (IDocument)NAntUtils.GetNAntReferenceDoc(type, Context);
 
@@ -66,18 +76,60 @@
 
     var linkName = GetNestedElementDetails(Model).Name;
     var link = type == null ? string.Empty : Context.GetLink(refType.FilePath(Keys.WritePath));
+    var obsolete = NAntUtils.GetObsoleteDetails(refModel);
 
-    <ul class="list-group">
-        <li class="list-group-item" style="border: none;">
-            <h3><a href="@link">&lt;@(linkName)&gt;</a></h3>
-            <p class="list-group-item-text">
-                @Model.Get("Summary")
-            </p>
-            <h3><a href="@link">&lt;/@(linkName)&gt;</a></h3>
-        </li>
-    </ul>
+    <div class="row">
+        <h2>
+            <a href="@link">&lt;@(linkName)&gt;</a>
+            @if(obsolete.Obsolete)
+            {
+                <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
+            }
+        </h2>
+        <div class="col-xs-@(13-level) col-xs-offset-@(level-1) col-sm-@(13-level) col-sm-offset-@(level-1) col-md-@(13-level) col-md-offset-@(level-1) col-lg-@(13-level) col-lg-offset-@(level-1)">
+            <p>@Html.Raw(Model.Get("Summary"))</p>
+            <p>@Html.Raw(type.Get("Summary"))</p>
+            <p>@Html.Raw(type.String("Remarks"))</p>
+            @if(obsolete.Obsolete)
+            {
+                <div class="alert alert-warning">
+                    <i>Obsolete. @Html.Raw(obsolete.Details)</i>
+                </div>
+            }
+            @{
+                var newViewData = new ViewDataDictionary(this.ViewData);
+                Trace.Information($"[_RefNestedElements view] _RefParameters calling with level {newViewData["level"]} for document {refModel.SourceString()}");
+                Html.RenderPartial("Section\\_RefParameters", refType, newViewData);
+                Html.RenderPartial("Section\\_RefNestedElements", refType, newViewData);
+            }
+        </div>
+        <h2><a href="@link">&lt;/@(linkName)&gt;</a></h2>
+    </div>
 }
 @if(NAntUtils.IsNAntNestedCollectionElement(Model))
 {
-    <p>IsNAntNestedCollectionElement</p>
+    var collectionElement = GetNestedElementDetails(Model);
+    var obsolete = NAntUtils.GetObsoleteDetails(refModel);
+
+    <div class="row">
+        <h2>NAnt nested collection -
+            &lt;@(collectionElement.Name)&gt;
+             @if(obsolete.Obsolete)
+            {
+                <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
+            }
+        </h2>
+        <div class="col-xs-@(13-level) col-xs-offset-@(level-1) col-sm-@(13-level) col-sm-offset-@(level-1) col-md-@(13-level) col-md-offset-@(level-1) col-lg-@(13-level) col-lg-offset-@(level-1)">
+            
+            <p>@Html.Raw(Model.Get("Summary"))</p>
+             @if(obsolete.Obsolete)
+            {
+                <div class="alert alert-warning">
+                    <i>Obsolete. @Html.Raw(obsolete.Details)</i>
+                </div>
+            } 
+            @*find IDocument that corresponds to Type returned by the Add method of the collection*@
+        </div>
+        <h2>&lt;@(collectionElement.Name)&gt;</h2>
+    </div>
 } 
