@@ -20,15 +20,17 @@
                                 && Model.List<IDocument>("Members").Any(x => NAntUtils.IsNAntNestedElement(x)); 
     
 
-    Func<IDocument, (string Name, string ChildName)> GetNestedElementDetails = (propDoc) =>{
+    Func<IDocument, (string Name, string ChildName, Type ChildType)> GetNestedElementDetails = (propDoc) =>{
 		if(NAntUtils.IsNAntNestedElement(propDoc))
 		{
 			Tuple<object, object, object> details = NAntUtils.GetAttributeDetails(propDoc, NAntUtils.IsNAntNestedElementAttribute);
-			return (Name: Convert.ToString(details.Item1) ?? string.Empty, ChildName: Convert.ToString(details.Item2) ?? string.Empty);
+			return (Name: Convert.ToString(details.Item1) ?? string.Empty, 
+                    ChildName: Convert.ToString(details.Item2) ?? string.Empty,
+                    ChildType: details.Item3 == null ? null : (Type)details.Item3);
 		}
 		else
 		{
-			return (Name: string.Empty, ChildName: string.Empty);	
+			return (Name: string.Empty, ChildName: string.Empty, ChildType: null);	
 		}
 	};
 
@@ -111,9 +113,11 @@
     var collectionElement = GetNestedElementDetails(Model);
     var obsolete = NAntUtils.GetObsoleteDetails(refModel);
 
+     Trace.Information($"[_RefNestedElements view] At level {level} for document {Model.SourceString()}: collection is {collectionElement.ToString()}");
+
     <div class="row">
-        <h2>NAnt nested collection -
-            &lt;@(collectionElement.Name)&gt;
+        <h2>
+            &lt;@(collectionElement.Name)&gt; - NAnt nested collection
              @if(obsolete.Obsolete)
             {
                 <i class="fa fa-exclamation-triangle text-warning" aria-hidden="true"></i>
@@ -128,6 +132,19 @@
                     <i>Obsolete. @Html.Raw(obsolete.Details)</i>
                 </div>
             } 
+            @*find IDocument that corresponds the child Type, if specified*@
+            @if(collectionElement.ChildType != null)
+            {
+                var child = Context.Documents["Reference"]
+                              .First( r => r.Get<NAntRefType>(NAntKeys.NAntRefType) != NAntRefType.None
+                                            && r.Get<IDocument>(CodeAnalysisKeys.Type).String(CodeAnalysisKeys.QualifiedName) == collectionElement.ChildType.ToString());
+                @if(child != null)
+                {
+                    var newViewData = new ViewDataDictionary(this.ViewData);
+                    Trace.Information($"[_RefNestedElements view] recursive calling with level {newViewData["level"]} for document {child.SourceString()}");
+                    Html.RenderPartial("Section\\_RefNestedElements", child, newViewData);
+                }
+            }
             @*find IDocument that corresponds to Type returned by the Add method of the collection*@
         </div>
         <h2>&lt;@(collectionElement.Name)&gt;</h2>
